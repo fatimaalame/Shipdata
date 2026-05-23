@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.title("ShipDATA")
+st.title("ShipData")
 st.write(
     "Booooooring"
 )
