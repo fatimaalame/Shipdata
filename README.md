@@ -1,8 +1,10 @@
-# 🎈 Blank app template
+## Description courte
 
-A simple Streamlit app template for you to modify!
+ShipData est un projet de base de données réalisé dans le cadre du cours de Bases de données à l’Université de Genève.
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://blank-app-template.streamlit.app/)
+Le projet porte sur le domaine du transport maritime. Il vise à construire une base de données relationnelle permettant de stocker et d’interroger des informations sur des navires, leurs types, leurs pavillons, leurs sociétés de classification, leurs constructeurs, leurs propriétaires, ainsi que leurs escales dans différents ports.
+
+La base contient des données réelles nettoyées lorsque c’était possible, complétées par des données fictives réalistes afin d’obtenir un ensemble cohérent et exploitable pour les requêtes SQL du projet.
 
 ### How to run it on your own machine
 
