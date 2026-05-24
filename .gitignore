@@ -1,6 +1,9 @@
 .streamlit/secrets.toml
 .DS_Store
 
+# Local project settings
+.project
+
 # DBeaver local settings
 .dbeaver/
 
