@@ -122,12 +122,12 @@ ALTER TABLE pavillon
     UNIQUE (nom_pays);
 
 ALTER TABLE pavillon
-    ADD CONSTRAINT uk_pavillon_code_iso2
-    UNIQUE (code_iso2);
-
-ALTER TABLE pavillon
     ADD CONSTRAINT uk_pavillon_code_iso3
     UNIQUE (code_iso3);
+
+CREATE UNIQUE INDEX uk_pavillon_code_iso2
+    ON pavillon (code_iso2)
+    WHERE code_iso2 IS NOT NULL;
 
 ALTER TABLE societe_classification
     ADD CONSTRAINT uk_societe_classification_nom
@@ -150,60 +150,56 @@ ALTER TABLE navire
     UNIQUE (mmsi);
 
 
--- CONTRAINTE CHECK
+-- CHECK
 
 ALTER TABLE constructeur
     ADD CONSTRAINT ck_constructeur_annee_fondation
-    CHECK (annee_fondation IS NULL OR annee_fondation BETWEEN 1700 AND 2026);
+    CHECK (annee_fondation BETWEEN 1700 AND 2026);
+
+ALTER TABLE proprietaire
+    ADD CONSTRAINT ck_proprietaire_annee_creation
+    CHECK (annee_creation BETWEEN 1700 AND 2026);
 
 ALTER TABLE navire
     ADD CONSTRAINT ck_navire_annee_construction
-    CHECK (annee_construction IS NULL OR annee_construction BETWEEN 1900 AND 2026);
+    CHECK (annee_construction BETWEEN 1900 AND 2026);
 
 ALTER TABLE navire
     ADD CONSTRAINT ck_navire_gross_tonnage
-    CHECK (gross_tonnage IS NULL OR gross_tonnage > 0);
+    CHECK (gross_tonnage > 0);
 
 ALTER TABLE navire
     ADD CONSTRAINT ck_navire_deadweight_tonnage
-    CHECK (deadweight_tonnage IS NULL OR deadweight_tonnage >= 0);
+    CHECK (deadweight_tonnage >= 0);
 
 ALTER TABLE navire
     ADD CONSTRAINT ck_navire_longueur
-    CHECK (longueur_m IS NULL OR longueur_m > 0);
+    CHECK (longueur_m > 0);
 
 ALTER TABLE navire
     ADD CONSTRAINT ck_navire_largeur
-    CHECK (largeur_m IS NULL OR largeur_m > 0);
+    CHECK (largeur_m > 0);
 
 ALTER TABLE navire
     ADD CONSTRAINT ck_navire_tirant_eau
-    CHECK (tirant_eau_m IS NULL OR tirant_eau_m > 0);
-
-ALTER TABLE navire
-    ADD CONSTRAINT ck_navire_capacite_teu
-    CHECK (capacite_teu IS NULL OR capacite_teu >= 0);
+    CHECK (tirant_eau_m > 0);
 
 ALTER TABLE port
     ADD CONSTRAINT ck_port_latitude
-    CHECK (latitude IS NULL OR latitude BETWEEN -90 AND 90);
+    CHECK (latitude BETWEEN -90 AND 90);
 
 ALTER TABLE port
     ADD CONSTRAINT ck_port_longitude
-    CHECK (longitude IS NULL OR longitude BETWEEN -180 AND 180);
+    CHECK (longitude BETWEEN -180 AND 180);
 
 ALTER TABLE port
-    ADD CONSTRAINT ck_port_harbor_size
-    CHECK (
-        harbor_size IS NULL
-        OR harbor_size IN ('Very Small', 'Small', 'Medium', 'Large')
-    );
+    ADD CONSTRAINT ck_port_taille
+    CHECK (taille_port IN ('Very Small', 'Small', 'Medium', 'Large'));
 
 ALTER TABLE port
-    ADD CONSTRAINT ck_port_harbor_type
+    ADD CONSTRAINT ck_port_type
     CHECK (
-        harbor_type IS NULL
-        OR harbor_type IN (
+        type_port IN (
             'Coastal Breakwater',
             'Coastal Natural',
             'Coastal Tide Gate',
@@ -214,6 +210,10 @@ ALTER TABLE port
             'River Tide Gate'
         )
     );
+
+ALTER TABLE port
+    ADD CONSTRAINT ck_port_capacite_max
+    CHECK (capacite_max_navire IN ('Over 500''', 'Under 500'''));
 
 ALTER TABLE propriete_navire
     ADD CONSTRAINT ck_propriete_navire_dates
