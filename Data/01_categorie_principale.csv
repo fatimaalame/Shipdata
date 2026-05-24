@@ -5,5 +5,5 @@ id_categorie,nom_categorie,description
 4,Passager,"Transport de passagers (ferries, paquebots, croisieres)"
 5,Service portuaire,"Navires de service en zone portuaire (remorqueurs, pilotage)"
 6,Offshore et soutien,"Navires de soutien aux activites offshore (ravitailleurs, plateformes)"
-7,Navigation interieure,"Navires opérant en riviere, lac ou canal"
+7,Navigation interieure,"Navires operant en riviere, lac ou canal"
 8,Autre,"Categorie residuelle (loisirs, peche, militaire, recherche)"
