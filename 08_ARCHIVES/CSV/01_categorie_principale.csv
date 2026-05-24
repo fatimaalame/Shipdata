@@ -1,0 +1,9 @@
+id_categorie,nom_categorie,description
+1,Cargo sec,"Marchandises solides en vrac, marchandises diverses, conteneurs"
+2,Cargo liquide,"Liquides en vrac (pétrole, gaz liquéfié, produits chimiques)"
+3,Cargo spécialisé,"Marchandises nécessitant un transport particulier (réfrigéré, véhicules, animaux)"
+4,Passager,"Transport de passagers (ferries, paquebots, croisières)"
+5,Service portuaire,"Navires de service en zone portuaire (remorqueurs, pilotage)"
+6,Offshore et soutien,"Navires de soutien aux activités offshore (ravitailleurs, plateformes)"
+7,Navigation intérieure,"Navires opérant en rivière, lac ou canal"
+8,Autre,"Catégorie résiduelle (loisirs, pêche, militaire, recherche)"

@@ -1,0 +1,21 @@
+id_societe_classification,nom_societe,sigle,code_iso2_pays
+1,American Bureau of Shipping,ABS,US
+2,Bureau Veritas Marine & Offshore,BV,FR
+3,China Classification Society,CCS,CN
+4,Croatian Register of Shipping,CRS,HR
+5,DNV,DNV,NO
+6,Indian Register of Shipping,IRClass,IN
+7,Korean Register,KR,KR
+8,Lloyd's Register,LR,GB
+9,Nippon Kaiji Kyokai,ClassNK,JP
+10,Polish Register of Shipping,PRS,PL
+11,Registro Italiano Navale,RINA,IT
+12,Türk Loydu,TL,TR
+13,Russian Maritime Register of Shipping,RS,RU
+14,Hellenic Register of Shipping,HRS,GR
+15,International Naval Surveys Bureau,INSB,GR
+16,Phoenix Register of Shipping,PHRS,GR
+17,Bulgarian Register of Shipping,BRS,BG
+18,Vietnam Register,VR,VN
+19,Indonesian Classification Bureau,BKI,ID
+20,Shipping Register of Ukraine,SRU,UA

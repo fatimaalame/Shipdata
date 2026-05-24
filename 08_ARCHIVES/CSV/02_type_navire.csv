@@ -1,0 +1,13 @@
+id_type_navire,nom_type,id_categorie,description
+1500,General cargo vessel,1,Navire cargo général
+1510,"Container ship, ro-ro cargo ship, or lash ship",1,"Porte-conteneurs, navire ro-ro cargo ou lash ship"
+1520,Bulk carrier,1,Vraquier
+1530,Non gas tanker,2,"Navire-citerne non gazier (chimiquier, pétrolier produits)"
+1540,Liquefied gas tanker,2,Navire-citerne pour gaz liquéfié
+1590,Passenger vessel,4,Navire à passagers maritime
+1592,"Ferry, ro-ro ship",4,Ferry ou navire ro-ro non limité au transport cargo
+1601,"Ocean tugboat, supply vessel: single",5,Remorqueur océanique ou navire de ravitaillement seul
+1602,"Ocean tugboat, supply vessel: tugging",5,Remorqueur océanique ou navire de ravitaillement en remorquage
+1750,Fishing boat,8,Bateau de pêche maritime
+1830,Sailing yacht,8,Yacht à voile
+8030,Container vessel,7,Navire transportant des conteneurs en navigation intérieure

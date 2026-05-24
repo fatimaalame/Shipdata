@@ -1,0 +1,54 @@
+id_pavillon,code_iso2,code_iso3,nom_pays
+1,PA,PAN,Panama
+2,LR,LBR,Liberia
+3,MH,MHL,Marshall Islands
+4,HK,HKG,Hong Kong
+5,SG,SGP,Singapore
+6,BS,BHS,Bahamas
+7,MT,MLT,Malta
+8,CY,CYP,Cyprus
+9,GR,GRC,Greece
+10,IT,ITA,Italy
+11,DE,DEU,Germany
+12,FR,FRA,France
+13,NL,NLD,Netherlands
+14,NO,NOR,Norway
+15,GB,GBR,United Kingdom
+16,BB,BRB,Barbados
+17,LK,LKA,Sri Lanka
+18,SL,SLE,Sierra Leone
+19,LB,LBN,Lebanon
+20,CN,CHN,China
+21,VU,VUT,Vanuatu
+22,TR,TUR,Turkey
+23,KM,COM,Comoros
+24,AG,ATG,Antigua and Barbuda
+25,CH,CHE,Switzerland
+26,DK,DNK,Denmark
+27,JP,JPN,Japan
+28,KR,KOR,South Korea
+29,BE,BEL,Belgium
+30,ES,ESP,Spain
+31,PT,PRT,Portugal
+32,FI,FIN,Finland
+33,SE,SWE,Sweden
+34,RU,RUS,Russia
+35,US,USA,United States
+36,AE,ARE,United Arab Emirates
+37,AR,ARG,Argentina
+38,BR,BRA,Brazil
+39,CA,CAN,Canada
+40,DZ,DZA,Algeria
+41,EG,EGY,Egypt
+42,HR,HRV,Croatia
+43,IN,IND,India
+44,KE,KEN,Kenya
+45,LY,LBY,Libya
+46,MA,MAR,Morocco
+47,MX,MEX,Mexico
+48,MY,MYS,Malaysia
+49,NG,NGA,Nigeria
+50,SD,SDN,Sudan
+51,SI,SVN,Slovenia
+52,TH,THA,Thailand
+53,ZA,ZAF,South Africa
