@@ -19,111 +19,130 @@ Nous l'avons fait sur draw.io et il présente les principales entités de la bas
 
 Évidemment, pas tout le monde connait le monde maritime donc les tableaux suivants présentent les attributs de chaque table de la base ShipData. Pour chaque attribut, il y a son nom, sa signification et son domaine de valeurs. Le domaine précise le type de donnée attendu ainsi que certaines contraintes importantes, comme les valeurs positives, les formats de date ou les références vers d’autres tables
 
-### `categorie_principale`
 
-| Attribut | Signification | Domaine |
-|---|---|---|
-| `id_categorie` | Identifiant unique de la catégorie principale de navire | Entier positif |
-| `nom_categorie` | Nom de la catégorie générale du navire | Texte court NON NULL |
-| `description` | Description de la catégorie principale | Texte descriptif NON NULL |
+### categorie_principale
 
-### `type_navire`
+| Attribut | Domaine | Contraintes | Définition |
+|---|---|---|---|
+| id_categorie | Integer | PK, NOT NULL | Identifiant unique de la catégorie principale |
+| nom_categorie | VARCHAR(100) | NOT NULL, UNIQUE | Nom de la catégorie générale du navire (ex. Cargo sec, Passager) |
+| description | VARCHAR(500) | NOT NULL | Description textuelle |
 
-| Attribut | Signification | Domaine |
-|---|---|---|
-| `id_type_navire` | Identifiant unique du type de navire | Entier positif |
-| `nom_type` | Nom précis du type de navire | Texte court NON NULL |
-| `id_categorie` | Catégorie principale à laquelle appartient le type de navire | Entier positif, clé étrangère vers `categorie_principale(id_categorie)` |
-| `description` | Description du type de navire | Texte descriptif NON NULL |
+---
 
-### `pavillon`
+### type_navire
 
-| Attribut | Signification | Domaine |
-|---|---|---|
-| `id_pavillon` | Identifiant unique du pavillon | Entier positif |
-| `nom_pays` | Nom du pays sous lequel un navire est immatriculé | Texte court NON NULL |
-| `code_iso2` | Code ISO du pays sur deux lettres | Texte de 2 caractères, peut être NULL si l’information n’est pas disponible |
-| `code_iso3` | Code ISO du pays sur trois lettres | Texte de 3 caractères NON NULL |
+| Attribut | Domaine | Contraintes | Définition |
+|---|---|---|---|
+| id_type_navire | Integer | PK, NOT NULL | Identifiant unique du type de navire |
+| nom_type | VARCHAR(150) | NOT NULL, UNIQUE | Nom précis du type de navire (ex. Container ship, Bulk carrier) |
+| id_categorie | Integer | NOT NULL, FK -> categorie_principale | Catégorie principale à laquelle appartient le type |
+| description | VARCHAR(500) | NOT NULL | Description du type de navire |
 
-### `societe_classification`
+---
 
-| Attribut | Signification | Domaine |
-|---|---|---|
-| `id_societe_classification` | Identifiant unique de la société de classification | Entier positif |
-| `nom_societe` | Nom complet de la société de classification maritime | Texte court NON NULL |
-| `sigle` | Sigle de la société de classification | Texte court NON NULL, par exemple `DNV`, `ABS`, `LR` |
-| `code_iso2_pays` | Code ISO du pays où se situe la société de classification | Texte de 2 caractères NON NULL |
-| `site_web` | Site web officiel de la société de classification | Texte NON NULL correspondant à une URL |
+### pavillon
 
-### `port`
+| Attribut | Domaine | Contraintes | Définition |
+|---|---|---|---|
+| id_pavillon | Integer | PK, NOT NULL | Identifiant unique du pavillon |
+| nom_pays | VARCHAR(100) | NOT NULL, UNIQUE | Nom du pays d'immatriculation |
+| code_iso2 | CHAR(2) | UNIQUE (partiel) | Code ISO 3166-1 alpha-2 du pays + NULL admis (car Namibie = NA) |
+| code_iso3 | CHAR(3) | NOT NULL, UNIQUE | Code ISO 3166-1 alpha-3 du pays |
 
-| Attribut | Signification | Domaine |
-|---|---|---|
-| `id_port` | Identifiant unique du port | Entier positif |
-| `nom_port` | Nom court ou courant du port | Texte court NON NULL |
-| `nom_formel` | Nom officiel ou complet du port | Texte NON NULL |
-| `code_iso2_pays` | Code ISO du pays où se situe le port | Texte de 2 caractères NON NULL |
-| `latitude` | Latitude géographique du port | Nombre décimal NON NULL entre -90 et 90 |
-| `longitude` | Longitude géographique du port | Nombre décimal NON NULL entre -180 et 180 |
-| `taille_port` | Taille du port | Texte NON NULL parmi `Very Small`, `Small`, `Medium`, `Large` |
-| `type_port` | Type géographique ou technique du port | Texte NON NULL, par exemple `Coastal Natural`, `River Basin`, `Open Roadstead` |
-| `capacite_max_navire` | Indication de la capacité maximale des navires pouvant accéder au port | Texte NON NULL, par exemple `Over 500'` ou `Under 500'` |
+---
 
-### `constructeur`
+### societe_classification
 
-| Attribut | Signification | Domaine |
-|---|---|---|
-| `id_constructeur` | Identifiant unique du constructeur naval | Entier positif |
-| `nom_constructeur` | Nom du chantier naval ou du groupe constructeur | Texte court NON NULL |
-| `code_iso2_pays` | Code ISO du pays du constructeur | Texte de 2 caractères NON NULL |
-| `annee_fondation` | Année de fondation du constructeur | Entier NON NULL compris entre 1700 et 2026 |
-| `ville_chantier` | Ville principale associée au chantier naval | Texte court NON NULL |
+| Attribut | Domaine | Contraintes | Définition |
+|---|---|---|---|
+| id_societe_classification | Integer | PK, NOT NULL | Identifiant unique de la société de classification |
+| nom_societe | VARCHAR(150) | NOT NULL, UNIQUE | Nom complet de la société (ex. Bureau Veritas) |
+| sigle | VARCHAR(20) | NOT NULL, UNIQUE | Sigle officiel de la société (ex. BV, DNV, LR) |
+| code_iso2_pays | CHAR(2) | NOT NULL | Code ISO du pays de la société |
+| site_web | VARCHAR(500) |  / | URL du site officiel de la société |
 
-### `proprietaire`
+---
 
-| Attribut | Signification | Domaine |
-|---|---|---|
-| `id_proprietaire` | Identifiant unique du propriétaire | Entier positif |
-| `nom_proprietaire` | Nom de l’entreprise ou organisation propriétaire | Texte court NON NULL |
-| `code_iso2_pays` | Code ISO du pays du propriétaire | Texte de 2 caractères NON NULL |
-| `annee_creation` | Année de création de l’organisation propriétaire | Entier NON NULL compris entre 1700 et 2026 |
-| `ville_siege` | Ville du siège ou de référence du propriétaire | Texte court NON NULL |
+### port
 
-### `navire`
+| Attribut | Domaine | Contraintes | Définition |
+|---|---|---|---|
+| id_port | Integer | PK, NOT NULL | Identifiant unique du port |
+| nom_port | VARCHAR(150) | NOT NULL | Nom courant du port (ex. Savona) |
+| nom_formel | VARCHAR(200) | NOT NULL, UNIQUE | Nom officiel complet du port (ex. Port of Beirut) |
+| code_iso2_pays | CHAR(2) | NOT NULL | Code ISO du pays où se situe le port |
+| latitude | NUMERIC(9,6) | NOT NULL | Latitude géographique du port (entre -90 et 90) |
+| longitude | NUMERIC(9,6) | NOT NULL | Longitude géographique du port (entre -180 et 180) |
+| taille_port | VARCHAR(50) | NOT NULL, CHECK | Taille du port : Very Small, Small, Medium ou Large |
+| type_port | VARCHAR(100) | NOT NULL, CHECK | Type d'infrastructure portuaire (8 valeurs possibles) |
+| capacite_max_navire | VARCHAR(50) | CHECK | Capacité maximale d'accueil : Under 500' ou Over 500' |
 
-| Attribut | Signification | Domaine |
-|---|---|---|
-| `imo` | Numéro IMO du navire, utilisé comme identifiant unique dans la base | Entier positif, clé primaire |
-| `mmsi` | Numéro MMSI du navire, utilisé dans les systèmes d’identification maritime | Entier positif NON NULL, valeur unique |
-| `nom_navire` | Nom du navire | Texte court NON NULL |
-| `id_type_navire` | Type auquel appartient le navire | Entier positif, clé étrangère vers `type_navire(id_type_navire)` |
-| `id_pavillon` | Pavillon sous lequel le navire est immatriculé | Entier positif, clé étrangère vers `pavillon(id_pavillon)` |
-| `annee_construction` | Année de construction du navire | Entier NON NULL compris entre 1900 et 2026 |
-| `gross_tonnage` | Jauge brute du navire | Entier strictement positif |
-| `deadweight_tonnage` | Port en lourd du navire, c’est-à-dire sa capacité de charge | Entier positif ou nul |
-| `longueur_m` | Longueur du navire en mètres | Nombre décimal strictement positif |
-| `largeur_m` | Largeur du navire en mètres | Nombre décimal strictement positif |
-| `tirant_eau_m` | Tirant d’eau du navire en mètres | Nombre décimal strictement positif |
-| `id_societe_classification` | Société de classification associée au navire | Entier positif, clé étrangère vers `societe_classification(id_societe_classification)` |
-| `id_constructeur` | Constructeur du navire | Entier positif, clé étrangère vers `constructeur(id_constructeur)` |
+---
 
-### `propriete_navire`
+### constructeur
 
-| Attribut | Signification | Domaine |
-|---|---|---|
-| `imo` | Navire concerné par la période de propriété | Entier positif, clé étrangère vers `navire(imo)` |
-| `id_proprietaire` | Propriétaire concerné par la période de propriété | Entier positif, clé étrangère vers `proprietaire(id_proprietaire)` |
-| `date_debut` | Date de début de la période pendant laquelle le propriétaire possède le navire | Date NON NULL au format `YYYY-MM-DD` |
-| `date_fin` | Date de fin de la période de propriété, une valeur NULL indique que le propriétaire est actuel | Date au format `YYYY-MM-DD`, peut être `NULL` |
+| Attribut | Domaine | Contraintes | Définition |
+|---|---|---|---|
+| id_constructeur | Integer | PK, NOT NULL | Identifiant unique du chantier naval |
+| nom_constructeur | VARCHAR(150) | NOT NULL, UNIQUE | Nom du chantier naval constructeur |
+| code_iso2_pays | CHAR(2) | NOT NULL | Code ISO du pays où se situe le chantier |
+| annee_fondation | Integer | NOT NULL, CHECK (1700–2030) | Année de fondation du chantier naval |
+| ville_chantier | VARCHAR(100) | NOT NULL | Ville où est établi le chantier naval |
 
-### `escale`
+---
 
-| Attribut | Signification | Domaine |
-|---|---|---|
-| `id_escale` | Identifiant unique de l’escale | Entier positif |
-| `imo` | Navire ayant effectué l’escale | Entier positif, clé étrangère vers `navire(imo)` |
-| `id_port` | Port dans lequel l’escale a lieu | Entier positif, clé étrangère vers `port(id_port)` |
-| `date_arrivee` | Date d’arrivée du navire au port | Date NON NULL au format `YYYY-MM-DD` |
-| `heure_arrivee` | Heure d’arrivée du navire au port | Heure au format `HH:MM:SS`, peut être NULL |
-| `date_depart` | Date de départ du navire du port | Date au format `YYYY-MM-DD`, peut être NULL |
-| `heure_depart` | Heure de départ du navire du port | Heure au format `HH:MM:SS`, peut être NULL |
+### proprietaire
+
+| Attribut | Domaine | Contraintes | Définition |
+|---|---|---|---|
+| id_proprietaire | Integer | PK, NOT NULL | Identifiant unique du propriétaire |
+| nom_proprietaire | VARCHAR(150) | NOT NULL, UNIQUE | Nom de l'entreprise ou organisation propriétaire |
+| code_iso2_pays | CHAR(2) | NOT NULL | Code ISO du pays du propriétaire |
+| annee_creation | Integer | NOT NULL, CHECK (1700–2030) | Année de création de l'organisation propriétaire |
+| ville_siege | VARCHAR(100) | NOT NULL | Ville du siège social |
+
+---
+
+### navire
+
+| Attribut | Domaine | Contraintes | Définition |
+|---|---|---|---|
+| imo | Integer | PK, NOT NULL, CHECK (7 chiffres) | IMO = identifiant maritime international|
+| mmsi | Integer | NOT NULL, UNIQUE, CHECK (9 chiffres) | MMSI = identifiant radio du navire |
+| nom_navire | VARCHAR(150) | NOT NULL | Nom commercial du navire |
+| id_type_navire | Integer | NOT NULL, FK -> type_navire | Type de navire |
+| id_pavillon | Integer | NOT NULL, FK -> pavillon | Pavillon d'immatriculation du navire |
+| annee_construction | Integer | NOT NULL, CHECK (1900–2030) | Année de mise en service du navire |
+| gross_tonnage | Integer | NOT NULL, CHECK > 0 | Tonnage brut = mesure du volume total du navire (en tonneaux) |
+| deadweight_tonnage | Integer | NOT NULL, CHECK ≥ 0 | Port en lourd = charge maximale transportable (en T) |
+| longueur_m | NUMERIC(6,2) | NOT NULL, CHECK > 0 | Longueur hors-tout du navire en mètres |
+| largeur_m | NUMERIC(6,2) | NOT NULL, CHECK > 0 | Largeur maximale du navire en mètres |
+| tirant_eau_m | NUMERIC(5,2) | NOT NULL, CHECK > 0 | Tirant d'eau maximal du navire en mètres |
+| id_societe_classification | Integer | NOT NULL, FK -> societe_classification | Société de classification certifiant le navire |
+| id_constructeur | Integer | NOT NULL, FK -> constructeur | Chantier naval ayant construit le navire |
+
+---
+
+### propriete_navire
+
+| Attribut | Domaine | Contraintes | Définition |
+|---|---|---|---|
+| imo | Integer | PK, NOT NULL, FK -> navire | Référence au navire concerné |
+| id_proprietaire | Integer | PK, NOT NULL, FK -> proprietaire | Référence au propriétaire |
+| date_debut | Date | PK, NOT NULL | Date de début de la période de propriété |
+| date_fin | Date | CHECK (date_fin > date_debut) | Date de fin de la période de propriété & NULL si propriétaire actuel |
+
+---
+
+### escale
+
+| Attribut | Domaine | Contraintes | Définition |
+|---|---|---|---|
+| id_escale | Integer | PK, NOT NULL | Identifiant unique de l'escale |
+| imo | Integer | NOT NULL, FK -> navire | Référence au navire ayant effectué l'escale |
+| id_port | Integer | NOT NULL, FK -> port | Référence au port visité |
+| date_arrivee | Date | NOT NULL | Date d'arrivée du navire dans le port. Format YYYY-MM-DD|
+| heure_arrivee | Time | / | Heure d'arrivée du navire dans le port. Format HH:MM:SS|
+| date_depart | Date | CHECK (date_depart ≥ date_arrivee) | Date de départ du navire & NULL si escale en cours. Format YYYY-MM-DD|
+| heure_depart | Time | / | Heure de départ du navire du port. Format HH:MM:SS|
