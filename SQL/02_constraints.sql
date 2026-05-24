@@ -110,8 +110,8 @@ ALTER TABLE escale
 -- UNIQUE
 
 ALTER TABLE categorie_principale
-    ADD CONSTRAINT uk_categorie_principale_libelle
-    UNIQUE (libelle_categorie);
+    ADD CONSTRAINT uk_categorie_principale_nom
+    UNIQUE (nom_categorie);
 
 ALTER TABLE type_navire
     ADD CONSTRAINT uk_type_navire_nom

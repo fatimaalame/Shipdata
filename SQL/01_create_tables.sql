@@ -11,7 +11,7 @@ DROP TABLE IF EXISTS categorie_principale;
 
 CREATE TABLE categorie_principale (
     id_categorie INTEGER NOT NULL,
-    libelle_categorie VARCHAR(100) NOT NULL,
+    nom_categorie VARCHAR(100) NOT NULL,
     description VARCHAR(500)
 );
 
