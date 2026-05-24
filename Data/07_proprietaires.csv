@@ -1,0 +1,19 @@
+id_proprietaire,nom_proprietaire,code_iso2_pays,annee_creation,ville_siege
+1,CMA CGM Group,FR,1978,Marseille
+2,Evergreen Marine Corporation,SG,1968,Singapore
+3,OOCL Lines Holdings,HK,1969,Hong Kong
+4,COSCO Shipping Lines,CN,1961,Shanghai
+5,A.P. Moller-Maersk A/S,DK,1904,Copenhagen
+6,MSC Mediterranean Shipping,CH,1970,Geneva
+7,Nivin Maritime Ltd,PA,2005,Panama City
+8,Pacific Maritime Holdings,SG,1985,Singapore
+9,Asian Lines Shipping Co,HK,1992,Hong Kong
+10,Hellenic Maritime Trust,GR,1976,Piraeus
+11,Italian Marine SpA,IT,1981,Genova
+12,Helvetia Maritime SA,CH,1995,Zurich
+13,Iberian Shipping Co,ES,1988,Cadiz
+14,Levante Shipping Lebanon,LB,1972,Beirut
+15,Cyprus Maritime Holdings,CY,1990,Limassol
+16,Barbados Shipping Group,BB,2001,Bridgetown
+17,Vanuatu Maritime Ltd,VU,2008,Port Vila
+18,Nordic Bulk Carriers AS,NO,1986,Oslo

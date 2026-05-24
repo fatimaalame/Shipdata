@@ -1,0 +1,21 @@
+id_societe_classification,nom_societe,sigle,code_iso2_pays,site_web,source_url
+1,American Bureau of Shipping,ABS,US,https://ww2.eagle.org,https://iacs.org.uk/membership/iacs-members
+2,Bureau Veritas Marine & Offshore,BV,FR,https://marine-offshore.bureauveritas.com,https://iacs.org.uk/membership/iacs-members
+3,China Classification Society,CCS,CN,https://www.ccs.org.cn,https://iacs.org.uk/membership/iacs-members
+4,Croatian Register of Shipping,CRS,HR,https://www.crs.hr,https://iacs.org.uk/membership/iacs-members
+5,DNV,DNV,NO,https://www.dnv.com/maritime,https://iacs.org.uk/membership/iacs-members
+6,Indian Register of Shipping,IRClass,IN,https://www.irclass.org,https://iacs.org.uk/membership/iacs-members
+7,Korean Register,KR,KR,https://www.krs.co.kr,https://iacs.org.uk/membership/iacs-members
+8,Lloyd's Register,LR,GB,https://www.lr.org,https://iacs.org.uk/membership/iacs-members
+9,Nippon Kaiji Kyokai,ClassNK,JP,https://www.classnk.or.jp,https://iacs.org.uk/membership/iacs-members
+10,Polish Register of Shipping,PRS,PL,https://www.prs.pl,https://iacs.org.uk/membership/iacs-members
+11,Registro Italiano Navale,RINA,IT,https://www.rina.org,https://iacs.org.uk/membership/iacs-members
+12,TŸrk Loydu,TL,TR,https://www.turkloydu.org,https://iacs.org.uk/membership/iacs-members
+13,Russian Maritime Register of Shipping,RS,RU,https://rs-class.org,https://rs-class.org/en/register/about/international/rs_iacs.php
+14,Hellenic Register of Shipping,HRS,GR,https://www.hrs.gr,https://www.hrs.gr
+15,International Naval Surveys Bureau,INSB,GR,https://www.insb.gr,https://www.insb.gr
+16,Phoenix Register of Shipping,PHRS,GR,https://www.phrs.gr,https://www.phrs.gr
+17,Bulgarian Register of Shipping,BRS,BG,https://www.brs-bg.com,https://www.brs-bg.com
+18,Vietnam Register,VR,VN,https://www.vr.org.vn,https://www.vr.org.vn
+19,Indonesian Classification Bureau,BKI,ID,https://www.bki.co.id,https://www.bki.co.id
+20,Shipping Register of Ukraine,SRU,UA,https://shipregister.ua,https://shipregister.ua
