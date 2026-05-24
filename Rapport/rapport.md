@@ -146,3 +146,36 @@ Nous l'avons fait sur draw.io et il présente les principales entités de la bas
 | heure_arrivee | Time | / | Heure d'arrivée du navire dans le port. Format HH:MM:SS|
 | date_depart | Date | CHECK (date_depart ≥ date_arrivee) | Date de départ du navire & NULL si escale en cours. Format YYYY-MM-DD|
 | heure_depart | Time | / | Heure de départ du navire du port. Format HH:MM:SS|
+
+--- 
+
+## Justification de la troisième forme normale
+
+Pour qu'une relation soit en 3FN, elle doit respecter trois conditions. En 1FN, chaque attribut contient une valeur unique et atomique. En 2FN, chaque attribut non-clé dépend de la totalité de la clé primaire et pas seulement d'une partie, ce qui concerne surtout les tables avec une clé composite. En 3FN, aucun attribut non-clé ne dépend d'un autre attribut non-clé : tout doit remonter directement à la clé.
+
+Dans ShipData, on a séparé chaque concept dans sa propre table dès le départ. Cette séparation est justement ce qui nous permet de garantir l'absence de redondances et de dépendances indésirables.
+
+categorie_principale: La clé primaire est id_categorie. Les attributs nom_categorie et description décrivent chacun directement la catégorie. La description ne dépend pas du nom de la catégorie : les deux sont des propriétés indépendantes de la catégorie elle-même. Aucune dépendance transitive n'est présente. La table est en 3FN.
+
+type_navire: La clé primaire est id_type_navire. Les attributs nom_type et description décrivent directement le type de navire. L'attribut id_categorie est une clé étrangère qui relie le type à sa catégorie principale, mais les informations de cette catégorie restent dans la table categorie_principale et ne sont pas répétées ici. Pas de dépendance transitive. La table est en 3FN.
+
+pavillon: La clé primaire est id_pavillon. Les attributs nom_pays, code_iso2 et code_iso3 décrivent directement le pays d'immatriculation. On aurait pu stocker ces informations dans la table navire, mais cela aurait répété le nom et les codes du pays pour chaque navire ayant le même pavillon. En isolant le pavillon dans sa propre table, on évite cette redondance. La table est en 3FN.
+
+societe_classification: La clé primaire est id_societe_classification. Les attributs nom_societe, sigle, code_iso2_pays et site_web décrivent tous directement la société. Aucun ne dépend d'un autre : le sigle ne détermine pas le site web, et le pays ne détermine pas le nom. Tout remonte à la clé. La table est en 3FN.
+
+port: La clé primaire est id_port. Tous les attributs, le nom, le nom formel, le pays, les coordonnées, la taille, le type et la capacité, décrivent directement le port. On aurait pu stocker certaines de ces informations dans la table escale, mais cela aurait dupliqué les données du port à chaque passage d'un navire. La séparation évite cette redondance. La table est en 3FN.
+
+constructeur: La clé primaire est id_constructeur. Les attributs nom_constructeur, code_iso2_pays, annee_fondation et ville_chantier décrivent directement le chantier naval. Aucun ne dépend d'un autre : la ville ne détermine pas le pays, et l'année de fondation ne dépend pas du nom. La table est en 3FN.
+
+proprietaire: La clé primaire est id_proprietaire. Les attributs nom_proprietaire, code_iso2_pays, annee_creation et ville_siege décrivent directement l'organisation propriétaire. La relation de propriété dans le temps est gérée séparément dans propriete_navire, ce qui évite de répéter les informations du propriétaire pour chaque navire qu'il possède ou a possédé. La table est en 3FN.
+
+navire: La clé primaire est imo. Tous les attributs techniques comme mmsi, nom_navire, annee_construction, les tonnages et les dimensions décrivent directement le navire identifié par son numéro IMO. Les références vers le type, le pavillon, la société de classification et le constructeur sont représentées par des clés étrangères : les détails de ces entités restent dans leurs propres tables et ne sont jamais répétés dans navire. Pas de dépendance transitive. La table est en 3FN.
+
+propriete_navire: La clé primaire est composite : (imo, id_proprietaire, date_debut). Le seul attribut non-clé est date_fin. Il dépend bien des trois composantes de la clé ensemble : il ne dépend pas de imo seul car un même navire peut avoir plusieurs propriétaires, ni de id_proprietaire seul car un même propriétaire peut détenir plusieurs navires à des périodes différentes, ni de date_debut seul. La 2FN est respectée. Et comme il n'y a qu'un seul attribut non-clé, aucune dépendance transitive n'est possible. La table est en 3FN.
+
+escale: La clé primaire est id_escale. Les attributs imo et id_port sont des clés étrangères qui relient l'escale à un navire et à un port. Les attributs date_arrivee, heure_arrivee, date_depart et heure_depart décrivent directement l'événement et dépendent de l'escale elle-même, pas du navire ou du port. Les informations du navire et du port restent dans leurs tables respectives. La table est en 3FN.
+
+
+### Conclusion
+
+Donc, toutes les relations de ShipData respectent la 3FN. Le schéma a été pensé pour que chaque table représente un seul concept, que les attributs non-clés dépendent directement de la clé primaire, et que les informations liées à d'autres entités soient isolées dans leurs propres tables et référencées par clés étrangères. Cette structure limite les redondances, simplifie les mises à jour et garantit la cohérence de la base.
