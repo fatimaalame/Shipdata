@@ -1,0 +1,11 @@
+-- y'a pas eu besoin :)  je les ai fait manuellement dans cet ordre là: 
+-- 1. 01_categorie_principale.csv      
+-- 2. 02_type_navires.csv              
+-- 3. 03_pavillons.csv         
+-- 4. 04_societes_classification.csv   
+-- 5. 05_port_data.csv         
+-- 6. 06_constructeurs.csv         
+-- 7. 07_proprietaires.csv      
+-- 8. 08_navires.csv               
+-- 9. 09_propriete_navire.csv       
+-- 10. 10_escales.csv                  

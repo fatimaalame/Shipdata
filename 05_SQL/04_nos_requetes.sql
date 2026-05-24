@@ -1,3 +1,10 @@
+-- R00 
+SELECT imo, nom_navire, annee_construction
+FROM navire
+WHERE annee_construction < 1995
+ORDER BY annee_construction;
+
+
 -- R01 
 SELECT
     n.imo,
@@ -23,7 +30,7 @@ GROUP BY c.id_categorie, c.nom_categorie
 ORDER BY nb_navires DESC;
 
 
--- R03
+-- R03 
 SELECT
     p.nom_port,
     p.code_iso2_pays          AS pays,
@@ -49,7 +56,7 @@ SELECT
 FROM propriete_navire pn
 JOIN navire       n   ON pn.imo             = n.imo
 JOIN proprietaire pr  ON pn.id_proprietaire = pr.id_proprietaire
-WHERE n.imo = (SELECT imo FROM navire WHERE nom_navire = 'MSC Beatrice')
+WHERE n.imo = (SELECT imo FROM navire WHERE nom_navire = 'CHS ALPHA')
 ORDER BY pn.date_debut;
 
 
@@ -64,26 +71,16 @@ HAVING COUNT(pn.id_proprietaire) > 1
 ORDER BY nb_proprietaires DESC;
 
 
--- R06
-
+-- R06 
 SELECT
-    p.nom_port,
-    p.code_iso2_pays             AS pays,
-    ROUND(
-        AVG(
-            EXTRACT(EPOCH FROM (
-                (e.date_depart  + e.heure_depart)  -
-                (e.date_arrivee + e.heure_arrivee)
-            )) / 3600
-        )::NUMERIC, 1
-    )                            AS duree_moyenne_heures
-FROM escale e
-JOIN port p  ON e.id_port = p.id_port
-WHERE e.date_depart   IS NOT NULL
-  AND e.heure_depart  IS NOT NULL
-  AND e.heure_arrivee IS NOT NULL
-GROUP BY p.id_port, p.nom_port, p.code_iso2_pays
-ORDER BY duree_moyenne_heures DESC;
+    p.nom_pays                       AS pavillon,
+    COUNT(n.imo)                     AS nb_navires,
+    ROUND(AVG(n.gross_tonnage))      AS gross_tonnage_moyen,
+    ROUND(AVG(n.deadweight_tonnage)) AS port_en_lourd_moyen
+FROM pavillon p
+JOIN navire n  ON n.id_pavillon = p.id_pavillon
+GROUP BY p.id_pavillon, p.nom_pays
+ORDER BY nb_navires DESC, gross_tonnage_moyen DESC;
 
 
 -- R07 
@@ -102,33 +99,15 @@ ORDER BY n.gross_tonnage DESC;
 
 -- R08 
 SELECT
-    p.nom_pays                     AS pavillon,
-    COUNT(n.imo)                   AS nb_navires,
-    ROUND(AVG(n.gross_tonnage))    AS gross_tonnage_moyen,
-    ROUND(AVG(n.deadweight_tonnage)) AS port_en_lourd_moyen
-FROM pavillon p
-JOIN navire n  ON n.id_pavillon = p.id_pavillon
-GROUP BY p.id_pavillon, p.nom_pays
-ORDER BY nb_navires DESC, gross_tonnage_moyen DESC;
+    t.nom_type,
+    ROUND(AVG(2026 - n.annee_construction), 1) AS age_moyen
+FROM navire n
+JOIN type_navire t  ON n.id_type_navire = t.id_type_navire
+GROUP BY t.nom_type
+ORDER BY age_moyen DESC;
 
 
 -- R09 
-SELECT
-    n.nom_navire,
-    t.nom_type,
-    p.nom_pays                AS pavillon
-FROM navire n
-JOIN type_navire t  ON n.id_type_navire = t.id_type_navire
-JOIN pavillon p     ON n.id_pavillon    = p.id_pavillon
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM escale e
-    WHERE e.imo = n.imo
-);
-
-
--- R10
-
 SELECT
     c.nom_categorie,
     n.nom_navire,
@@ -143,17 +122,51 @@ JOIN categorie_principale c   ON t.id_categorie   = c.id_categorie
 ORDER BY c.nom_categorie, rang_dans_categorie;
 
 
--- R11 
+-- R10 
 SELECT
+    po.nom_port,
+    po.code_iso2_pays         AS pays,
+    e.date_arrivee,
+    e.date_depart
+FROM escale e
+JOIN navire n   ON e.imo      = n.imo
+JOIN port po    ON e.id_port  = po.id_port
+WHERE n.nom_navire = 'NIVIN'
+ORDER BY e.date_arrivee;
+
+
+-- R11
+SELECT
+    n.nom_navire,
+    e.date_arrivee,
+    e.date_depart
+FROM escale e
+JOIN navire n   ON e.imo     = n.imo
+JOIN port po    ON e.id_port = po.id_port
+WHERE po.nom_port = 'Savona'
+  AND e.date_arrivee BETWEEN '2023-04-15' AND '2023-04-18'
+ORDER BY e.date_arrivee;
+
+
+-- R12 
+SELECT
+    n.nom_navire,
     pr.nom_proprietaire,
-    pr.ville_siege,
-    COUNT(n.imo)                                        AS nb_navires_actuels,
-    SUM(n.gross_tonnage)                                AS tonnage_total,
-    STRING_AGG(n.nom_navire, ', ' ORDER BY n.nom_navire) AS liste_navires
-FROM proprietaire pr
-JOIN propriete_navire pn  ON pn.id_proprietaire = pr.id_proprietaire
-JOIN navire n             ON pn.imo             = n.imo
-WHERE pn.date_fin IS NULL
-GROUP BY pr.id_proprietaire, pr.nom_proprietaire, pr.ville_siege
-HAVING COUNT(n.imo) > 1
-ORDER BY nb_navires_actuels DESC, tonnage_total DESC;
+    pr.code_iso2_pays,
+    pr.annee_creation,
+    pn.date_debut,
+    pn.date_fin
+FROM propriete_navire pn
+JOIN navire       n   ON pn.imo             = n.imo
+JOIN proprietaire pr  ON pn.id_proprietaire = pr.id_proprietaire
+WHERE n.imo = 8206533
+ORDER BY pn.date_debut;
+
+-- R13 
+SELECT
+    p.nom_pays                AS pavillon,
+    COUNT(n.imo)              AS nb_navires
+FROM navire n
+JOIN pavillon p  ON n.id_pavillon = p.id_pavillon
+GROUP BY p.nom_pays
+ORDER BY nb_navires DESC;
