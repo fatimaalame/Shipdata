@@ -275,6 +275,11 @@ st.markdown(
     .section-separator {
         height: 1rem;
     }
+
+    div[data-testid="stDataFrame"] {
+        border-radius: 12px;
+        overflow: hidden;
+    }
     </style>
     """,
     unsafe_allow_html=True
@@ -610,74 +615,83 @@ def get_distinct_values(ctx, table_key, column_key, placeholder):
         return [placeholder]
 
 
-def format_table_html(df):
-    """Transforme le DataFrame en tableau HTML stylé."""
+
+
+# ----------- Nouvelle préparation et style du tableau pour Streamlit ---------
+
+def prepare_display_dataframe(df):
+    """Prépare le tableau pour l'affichage Streamlit, sans afficher du HTML brut."""
     if df.empty:
-        return "<p class='small-muted'>Aucun résultat trouvé.</p>"
+        return df
 
-    html = """
-    <table class="result-table">
-        <thead>
-            <tr>
-                <th>IMO</th>
-                <th>Nom du navire</th>
-                <th>Type</th>
-                <th>Année</th>
-                <th>Pavillon</th>
-                <th>GT</th>
-                <th>DWT</th>
-                <th>Longueur</th>
-                <th>Classification</th>
-                <th>Propriétaire</th>
-            </tr>
-        </thead>
-        <tbody>
-    """
+    display_df = df.copy()
 
-    for _, row in df.iterrows():
-        imo = "" if pd.isna(row.get("imo")) else row.get("imo")
-        name = "" if pd.isna(row.get("nom_navire")) else row.get("nom_navire")
-        vessel_type = "" if pd.isna(row.get("type_navire")) else row.get("type_navire")
-        year = "" if pd.isna(row.get("annee_construction")) else row.get("annee_construction")
-        pavillon = "" if pd.isna(row.get("pavillon")) else row.get("pavillon")
-        gt = "" if pd.isna(row.get("gt")) else row.get("gt")
-        dwt = "" if pd.isna(row.get("dwt")) else row.get("dwt")
-        length = "" if pd.isna(row.get("longueur")) else row.get("longueur")
-        classification = "" if pd.isna(row.get("classification")) else row.get("classification")
-        owner = "" if pd.isna(row.get("proprietaire")) else row.get("proprietaire")
+    rename_map = {
+        "imo": "IMO",
+        "nom_navire": "Nom du navire",
+        "type_navire": "Type",
+        "annee_construction": "Année",
+        "pavillon": "Pavillon",
+        "gt": "GT",
+        "dwt": "DWT",
+        "longueur": "Longueur",
+        "classification": "Classification",
+        "proprietaire": "Propriétaire",
+    }
 
+    display_df = display_df.rename(columns=rename_map)
+
+    # Je garde seulement les colonnes utiles dans l'ordre voulu.
+    wanted_columns = [
+        "IMO",
+        "Nom du navire",
+        "Type",
+        "Année",
+        "Pavillon",
+        "GT",
+        "DWT",
+        "Longueur",
+        "Classification",
+        "Propriétaire",
+    ]
+    existing_columns = [col for col in wanted_columns if col in display_df.columns]
+    display_df = display_df[existing_columns]
+
+    # Ajout de l'unité pour la longueur.
+    if "Longueur" in display_df.columns:
+        def format_length(value):
+            if pd.isna(value) or value == "":
+                return ""
+            try:
+                return f"{float(value):g} m"
+            except Exception:
+                return str(value)
+
+        display_df["Longueur"] = display_df["Longueur"].apply(format_length)
+
+    return display_df
+
+
+def style_display_dataframe(display_df):
+    """Ajoute un style léger au tableau Streamlit."""
+    if display_df.empty:
+        return display_df
+
+    def highlight_old_year(value):
         try:
-            year_int = int(float(year))
-            year_html = f"<span class='badge-year-old'>{year_int}</span>" if year_int < 1995 else f"<span class='badge-year'>{year_int}</span>"
+            year = int(float(value))
+            if year < 1995:
+                return "background-color: #ffe4ec; color: #be123c; font-weight: 700;"
         except Exception:
-            year_html = ""
+            pass
+        return ""
 
-        try:
-            length_html = f"{float(length):g} m" if length != "" else ""
-        except Exception:
-            length_html = str(length)
+    styler = display_df.style
 
-        html += f"""
-            <tr>
-                <td>{imo}</td>
-                <td>{name}</td>
-                <td><span class="badge-type">{vessel_type}</span></td>
-                <td>{year_html}</td>
-                <td>{pavillon}</td>
-                <td>{gt}</td>
-                <td>{dwt}</td>
-                <td>{length_html}</td>
-                <td>{classification}</td>
-                <td>{owner}</td>
-            </tr>
-        """
+    if "Année" in display_df.columns:
+        styler = styler.map(highlight_old_year, subset=["Année"])
 
-    html += """
-        </tbody>
-    </table>
-    """
-
-    return html
+    return styler
 
 
 def safe_count_table(table_name):
@@ -833,8 +847,8 @@ st.markdown(
     """
     <div class="topbar">
         <div>
-            <div class="brand-title">VesselRegistry</div>
-            <div class="brand-subtitle">Base relationnelle des navires internationaux</div>
+            <div class="brand-title">ShipDATA</div>
+            <div class="brand-subtitle">Hiii, venez essayer :) </div>
         </div>
         <div class="nav-links">
             <span>Accueil</span>
@@ -953,7 +967,18 @@ st.markdown('</div>', unsafe_allow_html=True)
 
 # Résultats
 st.markdown('<div class="panel"><div class="panel-title">Résultats de recherche</div>', unsafe_allow_html=True)
-st.markdown(format_table_html(results), unsafe_allow_html=True)
+
+if results.empty:
+    st.info("Aucun résultat trouvé.")
+else:
+    display_results = prepare_display_dataframe(results)
+    st.dataframe(
+        style_display_dataframe(display_results),
+        use_container_width=True,
+        hide_index=True,
+        height=420
+    )
+
 st.markdown('</div>', unsafe_allow_html=True)
 
 
