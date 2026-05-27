@@ -1,22 +1,25 @@
-# ============================================================
-# ShipData - Interface Streamlit moderne
-# Projet de base de données
-# ============================================================
-# Lancement :
-# streamlit run 07_RAPPORT_FINAL/INTERFACE/interface_shipdata.py
-#
-# Dépendances :
-# pip install streamlit pandas psycopg2-binary
-# ============================================================
-
 from pathlib import Path
 import json
 import unicodedata
-from datetime import date
 
+import altair as alt
 import pandas as pd
 import psycopg2
 import streamlit as st
+
+
+# ============================================================
+# ShipData - Interface Streamlit avec rôles utilisateur
+# ============================================================
+# Lancement conseillé depuis la racine du projet :
+# python -m streamlit run .\07_RAPPORT_FINAL\streamlit_app.py
+#
+# Comptes de démonstration :
+# - client / client123
+# - capitaine / capitaine123
+# - employe / employe123
+# - admin / admin123
+# ============================================================
 
 
 # ------------------------------------------------------------
@@ -34,20 +37,54 @@ st.set_page_config(
 # ------------------------------------------------------------
 # Chemins
 # ------------------------------------------------------------
-# Le fichier Streamlit est dans 07_RAPPORT_FINAL/INTERFACE.
-# parents[2] remonte à la racine du projet Shipdata.
-ROOT_DIR = Path(__file__).resolve().parents[2]
+
+# Le fichier streamlit_app.py est dans 07_RAPPORT_FINAL.
+# parents[1] remonte à la racine du projet.
+ROOT_DIR = Path(__file__).resolve().parents[1]
 CONFIG_PATH = ROOT_DIR / "config.json"
 
 
 # ------------------------------------------------------------
-# CSS : style proche de ton exemple HTML/CSS
+# Comptes de démonstration et rôles
+# ------------------------------------------------------------
+
+USERS = {
+    "client": {
+        "password": "client123",
+        "role": "client",
+        "label": "Client",
+    },
+    "capitaine": {
+        "password": "capitaine123",
+        "role": "employe_capitaine",
+        "label": "Employé / capitaine",
+    },
+    "employe": {
+        "password": "employe123",
+        "role": "employe_capitaine",
+        "label": "Employé / capitaine",
+    },
+    "admin": {
+        "password": "admin123",
+        "role": "administrateur",
+        "label": "Administrateur",
+    },
+}
+
+ROLE_LABELS = {
+    "client": "Client",
+    "employe_capitaine": "Employé / capitaine",
+    "administrateur": "Administrateur",
+}
+
+
+# ------------------------------------------------------------
+# CSS
 # ------------------------------------------------------------
 
 st.markdown(
     """
     <style>
-    /* Cache les éléments Streamlit inutiles */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
@@ -70,20 +107,25 @@ st.markdown(
     }
 
     .block-container {
+        --page-x: clamp(2.5rem, 5vw, 5.5rem);
+
         padding-top: 0rem !important;
-        padding-left: 0rem !important;
-        padding-right: 0rem !important;
+        padding-left: var(--page-x) !important;
+        padding-right: var(--page-x) !important;
+        padding-bottom: 3rem !important;
         max-width: 100% !important;
     }
 
     .main-content {
-        padding: 2.2rem 2.6rem 3rem 2.6rem;
+        padding: 2.4rem 0 3.2rem 0;
     }
 
     .topbar {
         background: var(--navy);
         color: white;
-        padding: 1.25rem 2.6rem;
+        margin-left: calc(0px - var(--page-x));
+        margin-right: calc(0px - var(--page-x));
+        padding: 1.25rem var(--page-x);
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -103,16 +145,15 @@ st.markdown(
         margin-top: 0.25rem;
     }
 
-    .nav-links {
-        display: flex;
-        gap: 2rem;
-        font-weight: 700;
-        font-size: 0.95rem;
-        color: #e5e7eb;
-    }
-
-    .nav-links span {
-        opacity: 0.92;
+    .role-pill {
+        display: inline-block;
+        background: rgba(14, 165, 233, 0.15);
+        color: #e0f2fe;
+        border: 1px solid rgba(224, 242, 254, 0.22);
+        border-radius: 999px;
+        padding: 0.45rem 0.85rem;
+        font-weight: 800;
+        font-size: 0.86rem;
     }
 
     .hero-title {
@@ -126,6 +167,28 @@ st.markdown(
         color: #6b7280;
         font-size: 1rem;
         margin-bottom: 1.8rem;
+    }
+
+    .login-card {
+        background: white;
+        border-radius: 18px;
+        padding: 2rem;
+        max-width: 520px;
+        margin: 7vh auto 0 auto;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.10);
+        border: 1px solid rgba(229, 231, 235, 0.85);
+    }
+
+    .login-title {
+        font-size: 2rem;
+        font-weight: 850;
+        color: #111827;
+        margin-bottom: 0.3rem;
+    }
+
+    .login-subtitle {
+        color: #6b7280;
+        margin-bottom: 1.4rem;
     }
 
     .metric-card {
@@ -174,6 +237,13 @@ st.markdown(
         margin-bottom: 1rem;
     }
 
+    .panel-help {
+        color: #6b7280;
+        font-size: 0.92rem;
+        margin-top: -0.45rem;
+        margin-bottom: 1rem;
+    }
+
     .sql-box {
         background: #0b1020;
         color: #e5e7eb;
@@ -186,64 +256,6 @@ st.markdown(
         overflow-x: auto;
         min-height: 430px;
         box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
-    }
-
-    .query-item {
-        background: #f3f6fb;
-        padding: 0.85rem 1rem;
-        border-radius: 10px;
-        margin-bottom: 0.75rem;
-        font-weight: 650;
-        color: #273244;
-        border: 1px solid #eef2f7;
-    }
-
-    .result-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.92rem;
-        overflow: hidden;
-    }
-
-    .result-table th {
-        text-align: left;
-        background: #eef3fb;
-        padding: 0.9rem;
-        color: #374151;
-        font-weight: 800;
-        border-bottom: 1px solid #dbe3ef;
-    }
-
-    .result-table td {
-        padding: 0.85rem 0.9rem;
-        border-bottom: 1px solid #eef2f7;
-        color: #374151;
-    }
-
-    .badge-type {
-        display: inline-block;
-        background: #dff4ff;
-        color: #0077a8;
-        padding: 0.25rem 0.65rem;
-        border-radius: 999px;
-        font-weight: 800;
-        font-size: 0.78rem;
-    }
-
-    .badge-year-old {
-        display: inline-block;
-        background: #ffe4ec;
-        color: #be123c;
-        padding: 0.25rem 0.65rem;
-        border-radius: 999px;
-        font-weight: 800;
-        font-size: 0.78rem;
-    }
-
-    .badge-year {
-        display: inline-block;
-        color: #374151;
-        font-weight: 700;
     }
 
     div.stButton > button:first-child {
@@ -263,22 +275,23 @@ st.markdown(
     }
 
     div[data-testid="stSelectbox"] > div,
-    div[data-testid="stTextInput"] > div {
+    div[data-testid="stTextInput"] > div,
+    div[data-testid="stTextArea"] > div {
         border-radius: 10px;
     }
 
-    .small-muted {
-        color: #6b7280;
-        font-size: 0.9rem;
+    div[data-testid="stDataFrame"] {
+        border-radius: 12px;
+        overflow: hidden;
     }
 
     .section-separator {
         height: 1rem;
     }
 
-    div[data-testid="stDataFrame"] {
-        border-radius: 12px;
-        overflow: hidden;
+    .small-muted {
+        color: #6b7280;
+        font-size: 0.9rem;
     }
     </style>
     """,
@@ -287,13 +300,98 @@ st.markdown(
 
 
 # ------------------------------------------------------------
-# Petites fonctions utiles
+# Authentification
+# ------------------------------------------------------------
+
+def is_logged_in():
+    """Vérifie si l'utilisateur est connecté."""
+    return st.session_state.get("authenticated", False)
+
+
+def get_current_role():
+    """Renvoie le rôle courant."""
+    return st.session_state.get("role", "client")
+
+
+def get_current_role_label():
+    """Renvoie le libellé du rôle courant."""
+    return st.session_state.get(
+        "role_label",
+        ROLE_LABELS.get(get_current_role(), "Utilisateur")
+    )
+
+
+def can_view_sql():
+    """Les clients ne voient pas les requêtes SQL avancées."""
+    return get_current_role() in ["employe_capitaine", "administrateur"]
+
+
+def can_export_results():
+    """Les employés/capitaines et administrateurs peuvent exporter."""
+    return get_current_role() in ["employe_capitaine", "administrateur"]
+
+
+def is_admin():
+    """Vérifie si l'utilisateur est administrateur."""
+    return get_current_role() == "administrateur"
+
+
+def logout():
+    """Déconnecte l'utilisateur."""
+    st.session_state.authenticated = False
+    st.session_state.username = None
+    st.session_state.role = None
+    st.session_state.role_label = None
+    st.rerun()
+
+
+def login_screen():
+    """Affiche l'écran de connexion."""
+    st.markdown(
+        """
+        <div class="login-card">
+            <div class="login-title">ShipDATA</div>
+            <div class="login-subtitle">
+                Connecte-toi pour accéder à l'interface adaptée à ton rôle.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    with st.form("login_form"):
+        username = st.text_input("Nom d'utilisateur")
+        password = st.text_input("Mot de passe", type="password")
+        submit = st.form_submit_button("Se connecter", use_container_width=True)
+
+    with st.expander("Comptes de démonstration"):
+        st.write("Client : `client` / `client123`")
+        st.write("Employé / capitaine : `capitaine` / `capitaine123`")
+        st.write("Employé : `employe` / `employe123`")
+        st.write("Administrateur : `admin` / `admin123`")
+
+    if submit:
+        user = USERS.get(username.strip().lower())
+
+        if user and password == user["password"]:
+            st.session_state.authenticated = True
+            st.session_state.username = username.strip().lower()
+            st.session_state.role = user["role"]
+            st.session_state.role_label = user["label"]
+            st.rerun()
+
+        st.error("Nom d'utilisateur ou mot de passe incorrect.")
+
+
+# ------------------------------------------------------------
+# Fonctions utilitaires
 # ------------------------------------------------------------
 
 def normalize(text):
-    """Simplifie un texte pour comparer les noms de colonnes plus facilement."""
+    """Simplifie un texte pour comparer les noms de tables/colonnes."""
     if text is None:
         return ""
+
     text = str(text).lower()
     text = unicodedata.normalize("NFKD", text)
     text = "".join(c for c in text if not unicodedata.combining(c))
@@ -315,6 +413,7 @@ def read_config():
 def get_connection():
     """Crée la connexion PostgreSQL."""
     config = read_config()
+
     return psycopg2.connect(
         host=config.get("host", "localhost"),
         port=config.get("port", 5432),
@@ -345,7 +444,7 @@ def get_tables():
 def find_table(candidates):
     """Trouve une table même si son nom a une casse différente."""
     tables = get_tables()
-    normalized = {normalize(t): t for t in tables}
+    normalized = {normalize(table): table for table in tables}
 
     for candidate in candidates:
         key = normalize(candidate)
@@ -379,7 +478,7 @@ def find_column(table_name, candidates):
         return None
 
     columns = get_columns(table_name)
-    normalized = {normalize(c): c for c in columns}
+    normalized = {normalize(column): column for column in columns}
 
     for candidate in candidates:
         key = normalize(candidate)
@@ -400,14 +499,6 @@ def q(name):
     return '"' + str(name).replace('"', '""') + '"'
 
 
-def first_existing_table(*candidate_groups):
-    for candidates in candidate_groups:
-        table = find_table(candidates)
-        if table:
-            return table
-    return None
-
-
 # ------------------------------------------------------------
 # Détection du modèle
 # ------------------------------------------------------------
@@ -419,6 +510,7 @@ def detect_context():
     pavillon_table = find_table(["pavillon", "pays_pavillon", "flag"])
     classification_table = find_table(["societe_classification", "societeclassification", "classification"])
     proprietaire_table = find_table(["proprietaire", "owner"])
+    propriete_navire_table = find_table(["propriete_navire", "propriete navire", "ownership", "navire_proprietaire"])
     constructeur_table = find_table(["constructeur", "builder"])
     port_table = find_table(["port", "ports"])
     escale_table = find_table(["escale", "escales"])
@@ -429,6 +521,7 @@ def detect_context():
         "pavillon": pavillon_table,
         "classification": classification_table,
         "proprietaire": proprietaire_table,
+        "propriete_navire": propriete_navire_table,
         "constructeur": constructeur_table,
         "port": port_table,
         "escale": escale_table,
@@ -437,15 +530,17 @@ def detect_context():
     if navire_table:
         ctx.update({
             "imo": find_column(navire_table, ["imo", "numero_imo", "imo_number", "num_imo"]),
+            "mmsi": find_column(navire_table, ["mmsi"]),
             "nom_navire": find_column(navire_table, ["nom_navire", "nom", "name", "vessel_name"]),
             "annee": find_column(navire_table, ["annee_construction", "annee", "year_built", "construction_year"]),
             "gt": find_column(navire_table, ["gt", "gross_tonnage", "tonnage_brut"]),
             "dwt": find_column(navire_table, ["dwt", "deadweight", "deadweight_tonnage"]),
-            "longueur": find_column(navire_table, ["longueur", "length", "loa"]),
+            "longueur": find_column(navire_table, ["longueur", "longueur_m", "length", "loa"]),
+            "largeur": find_column(navire_table, ["largeur", "largeur_m", "width"]),
+            "tirant_eau": find_column(navire_table, ["tirant_eau", "tirant_eau_m", "draft"]),
             "id_type": find_column(navire_table, ["id_type", "id_type_navire", "type_id"]),
             "id_pavillon": find_column(navire_table, ["id_pavillon", "pavillon_id", "id_flag"]),
             "id_classification": find_column(navire_table, ["id_classification", "id_societe_classification", "classification_id"]),
-            "id_proprietaire": find_column(navire_table, ["id_proprietaire", "proprietaire_id", "owner_id"]),
             "id_constructeur": find_column(navire_table, ["id_constructeur", "constructeur_id", "builder_id"]),
         })
 
@@ -465,12 +560,20 @@ def detect_context():
         ctx.update({
             "classification_id": find_column(classification_table, ["id_classification", "id_societe_classification", "id"]),
             "classification_name": find_column(classification_table, ["nom_societe", "nom_classification", "societe", "classification", "nom"]),
+            "classification_sigle": find_column(classification_table, ["sigle", "code", "abbreviation"]),
         })
 
     if proprietaire_table:
         ctx.update({
             "proprietaire_id": find_column(proprietaire_table, ["id_proprietaire", "id"]),
             "proprietaire_name": find_column(proprietaire_table, ["nom_proprietaire", "proprietaire", "owner", "nom"]),
+        })
+
+    if propriete_navire_table:
+        ctx.update({
+            "ownership_imo": find_column(propriete_navire_table, ["imo", "id_navire"]),
+            "ownership_proprietaire_id": find_column(propriete_navire_table, ["id_proprietaire", "proprietaire_id", "owner_id"]),
+            "ownership_date_fin": find_column(propriete_navire_table, ["date_fin", "end_date"]),
         })
 
     if constructeur_table:
@@ -483,7 +586,8 @@ def detect_context():
         ctx.update({
             "port_id": find_column(port_table, ["id_port", "id"]),
             "port_name": find_column(port_table, ["nom_port", "port", "nom"]),
-            "port_country": find_column(port_table, ["pays", "country", "nom_pays"]),
+            "port_country": find_column(port_table, ["code_iso2_pays", "pays", "country", "nom_pays"]),
+            "port_size": find_column(port_table, ["taille_port", "taille", "size"]),
         })
 
     return ctx
@@ -493,9 +597,16 @@ def detect_context():
 # Construction SQL
 # ------------------------------------------------------------
 
-def build_main_query(ctx, search_text="", type_filter="Type de navire", pavillon_filter="Pavillon", class_filter="Société de classification"):
+def build_main_query(
+    ctx,
+    search_text="",
+    type_filter="Type de navire",
+    pavillon_filter="Pavillon",
+    class_filter="Société de classification"
+):
     """Construit la requête principale de recherche."""
     n = ctx["navire"]
+
     if not n:
         return None, []
 
@@ -504,29 +615,36 @@ def build_main_query(ctx, search_text="", type_filter="Type de navire", pavillon
     where_parts = []
     params = []
 
-    # Colonnes principales
     imo_col = ctx.get("imo")
+    mmsi_col = ctx.get("mmsi")
     name_col = ctx.get("nom_navire")
     year_col = ctx.get("annee")
     gt_col = ctx.get("gt")
     dwt_col = ctx.get("dwt")
     length_col = ctx.get("longueur")
+    width_col = ctx.get("largeur")
+    draft_col = ctx.get("tirant_eau")
 
     select_parts.append(f"n.{q(imo_col)} AS imo" if imo_col else "NULL AS imo")
+    select_parts.append(f"n.{q(mmsi_col)} AS mmsi" if mmsi_col else "NULL AS mmsi")
     select_parts.append(f"n.{q(name_col)} AS nom_navire" if name_col else "NULL AS nom_navire")
 
-    # Type
     if ctx.get("type") and ctx.get("id_type") and ctx.get("type_id") and ctx.get("type_name"):
-        joins.append(f"LEFT JOIN {q(ctx['type'])} t ON n.{q(ctx['id_type'])} = t.{q(ctx['type_id'])}")
+        joins.append(
+            f"LEFT JOIN {q(ctx['type'])} t "
+            f"ON n.{q(ctx['id_type'])} = t.{q(ctx['type_id'])}"
+        )
         select_parts.append(f"t.{q(ctx['type_name'])} AS type_navire")
     else:
         select_parts.append("NULL AS type_navire")
 
     select_parts.append(f"n.{q(year_col)} AS annee_construction" if year_col else "NULL AS annee_construction")
 
-    # Pavillon
     if ctx.get("pavillon") and ctx.get("id_pavillon") and ctx.get("pavillon_id") and ctx.get("pavillon_name"):
-        joins.append(f"LEFT JOIN {q(ctx['pavillon'])} p ON n.{q(ctx['id_pavillon'])} = p.{q(ctx['pavillon_id'])}")
+        joins.append(
+            f"LEFT JOIN {q(ctx['pavillon'])} p "
+            f"ON n.{q(ctx['id_pavillon'])} = p.{q(ctx['pavillon_id'])}"
+        )
         select_parts.append(f"p.{q(ctx['pavillon_name'])} AS pavillon")
     else:
         select_parts.append("NULL AS pavillon")
@@ -534,44 +652,90 @@ def build_main_query(ctx, search_text="", type_filter="Type de navire", pavillon
     select_parts.append(f"n.{q(gt_col)} AS gt" if gt_col else "NULL AS gt")
     select_parts.append(f"n.{q(dwt_col)} AS dwt" if dwt_col else "NULL AS dwt")
     select_parts.append(f"n.{q(length_col)} AS longueur" if length_col else "NULL AS longueur")
+    select_parts.append(f"n.{q(width_col)} AS largeur" if width_col else "NULL AS largeur")
+    select_parts.append(f"n.{q(draft_col)} AS tirant_eau" if draft_col else "NULL AS tirant_eau")
 
-    # Classification
-    if ctx.get("classification") and ctx.get("id_classification") and ctx.get("classification_id") and ctx.get("classification_name"):
-        joins.append(f"LEFT JOIN {q(ctx['classification'])} c ON n.{q(ctx['id_classification'])} = c.{q(ctx['classification_id'])}")
+    if (
+        ctx.get("classification")
+        and ctx.get("id_classification")
+        and ctx.get("classification_id")
+        and ctx.get("classification_name")
+    ):
+        joins.append(
+            f"LEFT JOIN {q(ctx['classification'])} c "
+            f"ON n.{q(ctx['id_classification'])} = c.{q(ctx['classification_id'])}"
+        )
         select_parts.append(f"c.{q(ctx['classification_name'])} AS classification")
     else:
         select_parts.append("NULL AS classification")
 
-    # Propriétaire
-    if ctx.get("proprietaire") and ctx.get("id_proprietaire") and ctx.get("proprietaire_id") and ctx.get("proprietaire_name"):
-        joins.append(f"LEFT JOIN {q(ctx['proprietaire'])} pr ON n.{q(ctx['id_proprietaire'])} = pr.{q(ctx['proprietaire_id'])}")
+    if (
+        ctx.get("constructeur")
+        and ctx.get("id_constructeur")
+        and ctx.get("constructeur_id")
+        and ctx.get("constructeur_name")
+    ):
+        joins.append(
+            f"LEFT JOIN {q(ctx['constructeur'])} co "
+            f"ON n.{q(ctx['id_constructeur'])} = co.{q(ctx['constructeur_id'])}"
+        )
+        select_parts.append(f"co.{q(ctx['constructeur_name'])} AS constructeur")
+    else:
+        select_parts.append("NULL AS constructeur")
+
+    if (
+        ctx.get("propriete_navire")
+        and ctx.get("proprietaire")
+        and ctx.get("ownership_imo")
+        and ctx.get("ownership_proprietaire_id")
+        and ctx.get("proprietaire_id")
+        and ctx.get("proprietaire_name")
+    ):
+        ownership_join = (
+            f"LEFT JOIN {q(ctx['propriete_navire'])} pn "
+            f"ON n.{q(imo_col)} = pn.{q(ctx['ownership_imo'])}"
+        )
+
+        if ctx.get("ownership_date_fin"):
+            ownership_join += f" AND pn.{q(ctx['ownership_date_fin'])} IS NULL"
+
+        joins.append(ownership_join)
+        joins.append(
+            f"LEFT JOIN {q(ctx['proprietaire'])} pr "
+            f"ON pn.{q(ctx['ownership_proprietaire_id'])} = pr.{q(ctx['proprietaire_id'])}"
+        )
         select_parts.append(f"pr.{q(ctx['proprietaire_name'])} AS proprietaire")
     else:
         select_parts.append("NULL AS proprietaire")
 
-    # Recherche texte
     if search_text.strip():
         search_value = f"%{search_text.strip()}%"
         text_conditions = []
+
         if name_col:
             text_conditions.append(f"CAST(n.{q(name_col)} AS TEXT) ILIKE %s")
             params.append(search_value)
+
         if imo_col:
             text_conditions.append(f"CAST(n.{q(imo_col)} AS TEXT) ILIKE %s")
             params.append(search_value)
+
+        if mmsi_col:
+            text_conditions.append(f"CAST(n.{q(mmsi_col)} AS TEXT) ILIKE %s")
+            params.append(search_value)
+
         if text_conditions:
             where_parts.append("(" + " OR ".join(text_conditions) + ")")
 
-    # Filtres
-    if type_filter != "Type de navire" and "t." in " ".join(joins) and ctx.get("type_name"):
+    if type_filter != "Type de navire" and ctx.get("type_name"):
         where_parts.append(f"t.{q(ctx['type_name'])} = %s")
         params.append(type_filter)
 
-    if pavillon_filter != "Pavillon" and "p." in " ".join(joins) and ctx.get("pavillon_name"):
+    if pavillon_filter != "Pavillon" and ctx.get("pavillon_name"):
         where_parts.append(f"p.{q(ctx['pavillon_name'])} = %s")
         params.append(pavillon_filter)
 
-    if class_filter != "Société de classification" and "c." in " ".join(joins) and ctx.get("classification_name"):
+    if class_filter != "Société de classification" and ctx.get("classification_name"):
         where_parts.append(f"c.{q(ctx['classification_name'])} = %s")
         params.append(class_filter)
 
@@ -599,6 +763,7 @@ def get_distinct_values(ctx, table_key, column_key, placeholder):
     """Valeurs distinctes pour les menus déroulants."""
     table = ctx.get(table_key)
     column = ctx.get(column_key)
+
     if not table or not column:
         return [placeholder]
 
@@ -608,6 +773,7 @@ def get_distinct_values(ctx, table_key, column_key, placeholder):
         WHERE {q(column)} IS NOT NULL
         ORDER BY {q(column)};
     """
+
     try:
         values = run_query(sql)["value"].dropna().astype(str).tolist()
         return [placeholder] + values
@@ -615,19 +781,32 @@ def get_distinct_values(ctx, table_key, column_key, placeholder):
         return [placeholder]
 
 
+# ------------------------------------------------------------
+# Préparation de l'affichage
+# ------------------------------------------------------------
 
+def format_meter_value(value):
+    """Ajoute l'unité m aux valeurs de dimensions."""
+    if pd.isna(value) or value == "":
+        return ""
 
-# ----------- Nouvelle préparation et style du tableau pour Streamlit ---------
+    try:
+        return f"{float(value):g} m"
+    except Exception:
+        return str(value)
+
 
 def prepare_display_dataframe(df):
-    """Prépare le tableau pour l'affichage Streamlit, sans afficher du HTML brut."""
+    """Prépare le tableau selon le rôle connecté."""
     if df.empty:
         return df
 
+    role = get_current_role()
     display_df = df.copy()
 
     rename_map = {
         "imo": "IMO",
+        "mmsi": "MMSI",
         "nom_navire": "Nom du navire",
         "type_navire": "Type",
         "annee_construction": "Année",
@@ -635,39 +814,62 @@ def prepare_display_dataframe(df):
         "gt": "GT",
         "dwt": "DWT",
         "longueur": "Longueur",
+        "largeur": "Largeur",
+        "tirant_eau": "Tirant d'eau",
         "classification": "Classification",
-        "proprietaire": "Propriétaire",
+        "constructeur": "Constructeur",
+        "proprietaire": "Propriétaire actuel",
     }
 
     display_df = display_df.rename(columns=rename_map)
 
-    # Je garde seulement les colonnes utiles dans l'ordre voulu.
-    wanted_columns = [
-        "IMO",
-        "Nom du navire",
-        "Type",
-        "Année",
-        "Pavillon",
-        "GT",
-        "DWT",
-        "Longueur",
-        "Classification",
-        "Propriétaire",
-    ]
-    existing_columns = [col for col in wanted_columns if col in display_df.columns]
+    if role == "client":
+        wanted_columns = [
+            "IMO",
+            "Nom du navire",
+            "Type",
+            "Année",
+            "Pavillon",
+            "Longueur",
+        ]
+    elif role == "employe_capitaine":
+        wanted_columns = [
+            "IMO",
+            "MMSI",
+            "Nom du navire",
+            "Type",
+            "Année",
+            "Pavillon",
+            "GT",
+            "DWT",
+            "Longueur",
+            "Classification",
+            "Propriétaire actuel",
+        ]
+    else:
+        wanted_columns = [
+            "IMO",
+            "MMSI",
+            "Nom du navire",
+            "Type",
+            "Année",
+            "Pavillon",
+            "GT",
+            "DWT",
+            "Longueur",
+            "Largeur",
+            "Tirant d'eau",
+            "Classification",
+            "Constructeur",
+            "Propriétaire actuel",
+        ]
+
+    existing_columns = [column for column in wanted_columns if column in display_df.columns]
     display_df = display_df[existing_columns]
 
-    # Ajout de l'unité pour la longueur.
-    if "Longueur" in display_df.columns:
-        def format_length(value):
-            if pd.isna(value) or value == "":
-                return ""
-            try:
-                return f"{float(value):g} m"
-            except Exception:
-                return str(value)
-
-        display_df["Longueur"] = display_df["Longueur"].apply(format_length)
+    for col in ["Longueur", "Largeur", "Tirant d'eau"]:
+        if col in display_df.columns:
+            display_df[col] = display_df[col].apply(format_meter_value)
 
     return display_df
 
@@ -684,6 +886,7 @@ def style_display_dataframe(display_df):
                 return "background-color: #ffe4ec; color: #be123c; font-weight: 700;"
         except Exception:
             pass
+
         return ""
 
     styler = display_df.style
@@ -695,143 +898,283 @@ def style_display_dataframe(display_df):
 
 
 def safe_count_table(table_name):
+    """Compte les lignes d'une table."""
     if not table_name:
         return 0
+
     try:
         return int(run_query(f"SELECT COUNT(*) AS n FROM {q(table_name)}")["n"].iloc[0])
     except Exception:
         return 0
 
 
-def safe_count_distinct(table_name, column_name):
-    if not table_name or not column_name:
-        return 0
-    try:
-        return int(run_query(f"SELECT COUNT(DISTINCT {q(column_name)}) AS n FROM {q(table_name)}")["n"].iloc[0])
-    except Exception:
-        return 0
+def show_bar_chart_with_margins(df, x_col, y_col, height=360):
+    """Affiche un graphique en barres avec des marges internes contrôlées."""
+    if df.empty:
+        st.info("Aucune donnée disponible pour ce graphique.")
+        return
+
+    chart = (
+        alt.Chart(df)
+        .mark_bar()
+        .encode(
+            x=alt.X(
+                f"{x_col}:N",
+                sort="-y",
+                title=None,
+                axis=alt.Axis(
+                    labelAngle=-90,
+                    labelPadding=8,
+                    labelLimit=160
+                )
+            ),
+            y=alt.Y(
+                f"{y_col}:Q",
+                title=None,
+                axis=alt.Axis(
+                    labelPadding=10
+                )
+            ),
+            tooltip=[
+                alt.Tooltip(f"{x_col}:N", title=x_col),
+                alt.Tooltip(f"{y_col}:Q", title=y_col),
+            ],
+        )
+        .properties(
+            height=height,
+            padding={
+                "left": 35,
+                "right": 15,
+                "top": 15,
+                "bottom": 70
+            }
+        )
+        .configure_view(strokeWidth=0)
+    )
+
+    st.altair_chart(chart, use_container_width=True)
 
 
 # ------------------------------------------------------------
-# Requêtes SQL prédéfinies
+# Requêtes SQL officielles du projet
 # ------------------------------------------------------------
 
-def predefined_queries(ctx):
-    n = ctx.get("navire")
-    if not n:
-        return {}
+def predefined_queries():
+    """Requêtes SQL visibles pour les rôles employés/capitaines et administrateurs."""
+    return {
+        "R00 - Navires construits avant 1995": """
+SELECT imo, nom_navire, annee_construction
+FROM navire
+WHERE annee_construction < 1995
+ORDER BY annee_construction;
+""".strip(),
 
-    # Requête 1 : navires anciens, construite selon les vraies colonnes trouvées.
-    main_sql, _ = build_main_query(ctx)
-    old_sql = main_sql.replace("LIMIT 50", "")
-    if ctx.get("annee"):
-        old_sql = old_sql.replace(f"ORDER BY n.{q(ctx['annee'])} ASC NULLS LAST", "")
-        old_sql += f" WHERE n.{q(ctx['annee'])} < 1995" if " WHERE " not in old_sql else f" AND n.{q(ctx['annee'])} < 1995"
-        old_sql += f" ORDER BY n.{q(ctx['annee'])} ASC NULLS LAST LIMIT 30"
+        "R01 - Navires avec type, catégorie et pavillon": """
+SELECT
+    n.imo,
+    n.nom_navire,
+    t.nom_type AS type_navire,
+    c.nom_categorie AS categorie,
+    p.nom_pays AS pavillon
+FROM navire n
+JOIN type_navire t ON n.id_type_navire = t.id_type_navire
+JOIN categorie_principale c ON t.id_categorie = c.id_categorie
+JOIN pavillon p ON n.id_pavillon = p.id_pavillon
+ORDER BY c.nom_categorie, t.nom_type, n.nom_navire;
+""".strip(),
 
-    queries = {
-        "1. Afficher les navires les plus anciens": old_sql.strip(),
+        "R02 - Nombre de navires par catégorie": """
+SELECT
+    c.nom_categorie,
+    COUNT(n.imo) AS nb_navires
+FROM categorie_principale c
+JOIN type_navire t ON t.id_categorie = c.id_categorie
+JOIN navire n ON n.id_type_navire = t.id_type_navire
+GROUP BY c.id_categorie, c.nom_categorie
+ORDER BY nb_navires DESC;
+""".strip(),
+
+        "R03 - Top 5 ports avec le plus d'escales": """
+SELECT
+    p.nom_port,
+    p.code_iso2_pays AS pays,
+    p.taille_port,
+    COUNT(e.id_escale) AS nb_escales
+FROM port p
+JOIN escale e ON e.id_port = p.id_port
+GROUP BY p.id_port, p.nom_port, p.code_iso2_pays, p.taille_port
+ORDER BY nb_escales DESC
+LIMIT 5;
+""".strip(),
+
+        "R04 - Historique des propriétaires de CHS ALPHA": """
+SELECT
+    n.nom_navire,
+    pr.nom_proprietaire,
+    pn.date_debut,
+    pn.date_fin,
+    CASE
+        WHEN pn.date_fin IS NULL THEN 'Propriétaire actuel'
+        ELSE 'Ancien propriétaire'
+    END AS statut
+FROM propriete_navire pn
+JOIN navire n ON pn.imo = n.imo
+JOIN proprietaire pr ON pn.id_proprietaire = pr.id_proprietaire
+WHERE n.imo = (SELECT imo FROM navire WHERE nom_navire = 'CHS ALPHA')
+ORDER BY pn.date_debut;
+""".strip(),
+
+        "R05 - Navires ayant plusieurs propriétaires": """
+SELECT
+    n.nom_navire,
+    COUNT(pn.id_proprietaire) AS nb_proprietaires
+FROM navire n
+JOIN propriete_navire pn ON pn.imo = n.imo
+GROUP BY n.imo, n.nom_navire
+HAVING COUNT(pn.id_proprietaire) > 1
+ORDER BY nb_proprietaires DESC;
+""".strip(),
+
+        "R06 - Tonnage moyen par pavillon": """
+SELECT
+    p.nom_pays AS pavillon,
+    COUNT(n.imo) AS nb_navires,
+    ROUND(AVG(n.gross_tonnage)) AS gross_tonnage_moyen,
+    ROUND(AVG(n.deadweight_tonnage)) AS port_en_lourd_moyen
+FROM pavillon p
+JOIN navire n ON n.id_pavillon = p.id_pavillon
+GROUP BY p.id_pavillon, p.nom_pays
+ORDER BY nb_navires DESC, gross_tonnage_moyen DESC;
+""".strip(),
+
+        "R07 - Navires classés par DNV": """
+SELECT
+    n.nom_navire,
+    n.annee_construction,
+    n.gross_tonnage,
+    n.deadweight_tonnage,
+    s.sigle AS societe_classification
+FROM navire n
+JOIN societe_classification s
+    ON n.id_societe_classification = s.id_societe_classification
+WHERE s.sigle = 'DNV'
+ORDER BY n.gross_tonnage DESC;
+""".strip(),
+
+        "R08 - Âge moyen des navires par type": """
+SELECT
+    t.nom_type,
+    ROUND(AVG(2026 - n.annee_construction), 1) AS age_moyen
+FROM navire n
+JOIN type_navire t ON n.id_type_navire = t.id_type_navire
+GROUP BY t.nom_type
+ORDER BY age_moyen DESC;
+""".strip(),
+
+        "R09 - Classement des navires par tonnage dans chaque catégorie": """
+SELECT
+    c.nom_categorie,
+    n.nom_navire,
+    n.gross_tonnage,
+    RANK() OVER (
+        PARTITION BY c.id_categorie
+        ORDER BY n.gross_tonnage DESC
+    ) AS rang_dans_categorie
+FROM navire n
+JOIN type_navire t ON n.id_type_navire = t.id_type_navire
+JOIN categorie_principale c ON t.id_categorie = c.id_categorie
+ORDER BY c.nom_categorie, rang_dans_categorie;
+""".strip(),
+
+        "R10 - Escales du navire NIVIN": """
+SELECT
+    po.nom_port,
+    po.code_iso2_pays AS pays,
+    e.date_arrivee,
+    e.date_depart
+FROM escale e
+JOIN navire n ON e.imo = n.imo
+JOIN port po ON e.id_port = po.id_port
+WHERE n.nom_navire = 'NIVIN'
+ORDER BY e.date_arrivee;
+""".strip(),
+
+        "R11 - Navires passés par Savona entre le 15 et le 18 avril 2023": """
+SELECT
+    n.nom_navire,
+    e.date_arrivee,
+    e.date_depart
+FROM escale e
+JOIN navire n ON e.imo = n.imo
+JOIN port po ON e.id_port = po.id_port
+WHERE po.nom_port = 'Savona'
+  AND e.date_arrivee BETWEEN '2023-04-15' AND '2023-04-18'
+ORDER BY e.date_arrivee;
+""".strip(),
+
+        "R12 - Propriétaires du navire IMO 8206533": """
+SELECT
+    n.nom_navire,
+    pr.nom_proprietaire,
+    pr.code_iso2_pays,
+    pr.annee_creation,
+    pn.date_debut,
+    pn.date_fin
+FROM propriete_navire pn
+JOIN navire n ON pn.imo = n.imo
+JOIN proprietaire pr ON pn.id_proprietaire = pr.id_proprietaire
+WHERE n.imo = 8206533
+ORDER BY pn.date_debut;
+""".strip(),
+
+        "R13 - Nombre de navires par pavillon": """
+SELECT
+    p.nom_pays AS pavillon,
+    COUNT(n.imo) AS nb_navires
+FROM navire n
+JOIN pavillon p ON n.id_pavillon = p.id_pavillon
+GROUP BY p.nom_pays
+ORDER BY nb_navires DESC;
+""".strip(),
     }
 
-    if ctx.get("type") and ctx.get("type_name") and ctx.get("id_type") and ctx.get("type_id") and ctx.get("gt"):
-        queries["2. Comparer le tonnage moyen par type de navire"] = f"""
-SELECT
-    t.{q(ctx['type_name'])} AS type_navire,
-    ROUND(AVG(n.{q(ctx['gt'])})::numeric, 2) AS tonnage_moyen,
-    COUNT(*) AS nombre_navires
-FROM {q(n)} n
-JOIN {q(ctx['type'])} t ON n.{q(ctx['id_type'])} = t.{q(ctx['type_id'])}
-GROUP BY t.{q(ctx['type_name'])}
-ORDER BY tonnage_moyen DESC;
-""".strip()
 
-    if ctx.get("pavillon") and ctx.get("pavillon_name") and ctx.get("id_pavillon") and ctx.get("pavillon_id"):
-        queries["3. Trouver les pavillons les plus représentés"] = f"""
-SELECT
-    p.{q(ctx['pavillon_name'])} AS pavillon,
-    COUNT(*) AS nombre_navires
-FROM {q(n)} n
-JOIN {q(ctx['pavillon'])} p ON n.{q(ctx['id_pavillon'])} = p.{q(ctx['pavillon_id'])}
-GROUP BY p.{q(ctx['pavillon_name'])}
-ORDER BY nombre_navires DESC;
-""".strip()
+def is_safe_select_query(sql):
+    """Autorise seulement les requêtes SELECT/WITH pour l'espace administrateur."""
+    cleaned = sql.strip().lower()
 
-    if ctx.get("proprietaire") and ctx.get("proprietaire_name") and ctx.get("id_proprietaire") and ctx.get("proprietaire_id"):
-        queries["4. Lister les propriétaires possédant plusieurs navires"] = f"""
-SELECT
-    pr.{q(ctx['proprietaire_name'])} AS proprietaire,
-    COUNT(*) AS nombre_navires
-FROM {q(n)} n
-JOIN {q(ctx['proprietaire'])} pr ON n.{q(ctx['id_proprietaire'])} = pr.{q(ctx['proprietaire_id'])}
-GROUP BY pr.{q(ctx['proprietaire_name'])}
-HAVING COUNT(*) > 1
-ORDER BY nombre_navires DESC;
-""".strip()
+    if not cleaned:
+        return False
 
-    if ctx.get("constructeur") and ctx.get("constructeur_name") and ctx.get("id_constructeur") and ctx.get("constructeur_id"):
-        queries["5. Identifier les constructeurs les plus fréquents"] = f"""
-SELECT
-    co.{q(ctx['constructeur_name'])} AS constructeur,
-    COUNT(*) AS nombre_navires
-FROM {q(n)} n
-JOIN {q(ctx['constructeur'])} co ON n.{q(ctx['id_constructeur'])} = co.{q(ctx['constructeur_id'])}
-GROUP BY co.{q(ctx['constructeur_name'])}
-ORDER BY nombre_navires DESC;
-""".strip()
+    if not (cleaned.startswith("select") or cleaned.startswith("with")):
+        return False
 
-    if ctx.get("classification") and ctx.get("classification_name") and ctx.get("id_classification") and ctx.get("classification_id"):
-        queries["6. Rechercher les navires classés par Bureau Veritas"] = f"""
-SELECT
-    n.{q(ctx.get('imo'))} AS imo,
-    n.{q(ctx.get('nom_navire'))} AS nom_navire,
-    c.{q(ctx['classification_name'])} AS classification
-FROM {q(n)} n
-JOIN {q(ctx['classification'])} c ON n.{q(ctx['id_classification'])} = c.{q(ctx['classification_id'])}
-WHERE c.{q(ctx['classification_name'])} ILIKE '%Bureau Veritas%'
-ORDER BY n.{q(ctx.get('nom_navire'))};
-""".strip()
+    forbidden_keywords = [
+        "insert",
+        "update",
+        "delete",
+        "drop",
+        "alter",
+        "truncate",
+        "create",
+        "grant",
+        "revoke",
+    ]
 
-    if ctx.get("pavillon") and ctx.get("pavillon_name") and ctx.get("annee"):
-        queries["7. Calculer l'âge moyen des navires par pavillon"] = f"""
-SELECT
-    p.{q(ctx['pavillon_name'])} AS pavillon,
-    ROUND(AVG(EXTRACT(YEAR FROM CURRENT_DATE) - n.{q(ctx['annee'])})::numeric, 2) AS age_moyen
-FROM {q(n)} n
-JOIN {q(ctx['pavillon'])} p ON n.{q(ctx['id_pavillon'])} = p.{q(ctx['pavillon_id'])}
-WHERE n.{q(ctx['annee'])} IS NOT NULL
-GROUP BY p.{q(ctx['pavillon_name'])}
-ORDER BY age_moyen DESC;
-""".strip()
-
-    if ctx.get("dwt"):
-        queries["8. Trouver les navires avec le plus grand DWT"] = f"""
-SELECT
-    n.{q(ctx.get('imo'))} AS imo,
-    n.{q(ctx.get('nom_navire'))} AS nom_navire,
-    n.{q(ctx['dwt'])} AS dwt
-FROM {q(n)} n
-ORDER BY n.{q(ctx['dwt'])} DESC NULLS LAST
-LIMIT 20;
-""".strip()
-
-    if ctx.get("type") and ctx.get("type_name") and ctx.get("dwt"):
-        queries["9. Comparer les types de navires selon leur capacité"] = f"""
-SELECT
-    t.{q(ctx['type_name'])} AS type_navire,
-    ROUND(AVG(n.{q(ctx['dwt'])})::numeric, 2) AS dwt_moyen,
-    MAX(n.{q(ctx['dwt'])}) AS dwt_maximal,
-    COUNT(*) AS nombre_navires
-FROM {q(n)} n
-JOIN {q(ctx['type'])} t ON n.{q(ctx['id_type'])} = t.{q(ctx['type_id'])}
-GROUP BY t.{q(ctx['type_name'])}
-ORDER BY dwt_moyen DESC;
-""".strip()
-
-    return queries
+    return not any(keyword in cleaned for keyword in forbidden_keywords)
 
 
 # ------------------------------------------------------------
-# Interface principale
+# Écran de connexion
+# ------------------------------------------------------------
+
+if not is_logged_in():
+    login_screen()
+    st.stop()
+
+
+# ------------------------------------------------------------
+# Connexion à la base et détection du contexte
 # ------------------------------------------------------------
 
 try:
@@ -842,25 +1185,30 @@ except Exception as error:
     st.exception(error)
     st.stop()
 
-# Topbar
+
+# ------------------------------------------------------------
+# Interface principale
+# ------------------------------------------------------------
+
+role_label = get_current_role_label()
+
 st.markdown(
-    """
+    f"""
     <div class="topbar">
         <div>
             <div class="brand-title">ShipDATA</div>
-            <div class="brand-subtitle">Hiii, venez essayer :) </div>
+            <div class="brand-subtitle">Interface de consultation et d'analyse maritime</div>
         </div>
-        <div class="nav-links">
-            <span>Accueil</span>
-            <span>Navires</span>
-            <span>Ports</span>
-            <span>Requêtes SQL</span>
-            <span>Statistiques</span>
-        </div>
+        <div class="role-pill">{role_label}</div>
     </div>
     """,
     unsafe_allow_html=True
 )
+
+logout_col_1, logout_col_2 = st.columns([8, 1])
+with logout_col_2:
+    if st.button("Déconnexion", use_container_width=True):
+        logout()
 
 st.markdown('<div class="main-content">', unsafe_allow_html=True)
 
@@ -868,19 +1216,25 @@ st.markdown(
     """
     <div class="hero-title">Tableau de bord maritime</div>
     <div class="hero-subtitle">
-        Interface de consultation des navires, pavillons, constructeurs, propriétaires, gestionnaires et sociétés de classification.
+        Interface de consultation des navires, pavillons, constructeurs, propriétaires,
+        ports, escales et sociétés de classification.
     </div>
     """,
     unsafe_allow_html=True
 )
 
+
+# ------------------------------------------------------------
 # Métriques
+# ------------------------------------------------------------
+
 navire_count = safe_count_table(ctx.get("navire"))
 pavillon_count = safe_count_table(ctx.get("pavillon"))
 port_count = safe_count_table(ctx.get("port"))
 classification_count = safe_count_table(ctx.get("classification"))
 
 m1, m2, m3, m4 = st.columns(4)
+
 with m1:
     st.markdown(f"""
     <div class="metric-card">
@@ -889,6 +1243,7 @@ with m1:
         <div class="metric-note">données IMO</div>
     </div>
     """.replace(",", " "), unsafe_allow_html=True)
+
 with m2:
     st.markdown(f"""
     <div class="metric-card">
@@ -897,6 +1252,7 @@ with m2:
         <div class="metric-note">pays différents</div>
     </div>
     """.replace(",", " "), unsafe_allow_html=True)
+
 with m3:
     st.markdown(f"""
     <div class="metric-card">
@@ -905,6 +1261,7 @@ with m3:
         <div class="metric-note">escales possibles</div>
     </div>
     """.replace(",", " "), unsafe_allow_html=True)
+
 with m4:
     st.markdown(f"""
     <div class="metric-card">
@@ -915,35 +1272,108 @@ with m4:
     """.replace(",", " "), unsafe_allow_html=True)
 
 
+# ------------------------------------------------------------
 # Recherche multicritère
-st.markdown('<div class="panel"><div class="panel-title">Recherche multicritère</div>', unsafe_allow_html=True)
+# ------------------------------------------------------------
+
+st.markdown(
+    """
+    <div class="panel">
+        <div class="panel-title">Recherche multicritère</div>
+        <div class="panel-help">
+            Les informations affichées changent selon le rôle connecté.
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 type_values = get_distinct_values(ctx, "type", "type_name", "Type de navire")
 pavillon_values = get_distinct_values(ctx, "pavillon", "pavillon_name", "Pavillon")
-classification_values = get_distinct_values(ctx, "classification", "classification_name", "Société de classification")
+classification_values = get_distinct_values(
+    ctx,
+    "classification",
+    "classification_name",
+    "Société de classification"
+)
 
-c1, c2, c3, c4 = st.columns([2.1, 1, 1, 1])
-with c1:
-    search_text = st.text_input("Recherche", placeholder="Rechercher par nom ou numéro IMO...", label_visibility="collapsed")
-with c2:
-    selected_type = st.selectbox("Type de navire", type_values, label_visibility="collapsed")
-with c3:
-    selected_pavillon = st.selectbox("Pavillon", pavillon_values, label_visibility="collapsed")
-with c4:
-    selected_classification = st.selectbox("Société de classification", classification_values, label_visibility="collapsed")
+if get_current_role() == "client":
+    c1, c2, c3 = st.columns([2.2, 1, 1])
 
-b1, b2, b3, spacer = st.columns([1.1, 0.8, 1.1, 5])
-with b1:
+    with c1:
+        search_text = st.text_input(
+            "Recherche",
+            placeholder="Rechercher par nom, IMO ou MMSI...",
+            label_visibility="collapsed"
+        )
+
+    with c2:
+        selected_type = st.selectbox(
+            "Type de navire",
+            type_values,
+            label_visibility="collapsed"
+        )
+
+    with c3:
+        selected_pavillon = st.selectbox(
+            "Pavillon",
+            pavillon_values,
+            label_visibility="collapsed"
+        )
+
+    selected_classification = "Société de classification"
+
+else:
+    c1, c2, c3, c4 = st.columns([2.1, 1, 1, 1])
+
+    with c1:
+        search_text = st.text_input(
+            "Recherche",
+            placeholder="Rechercher par nom, IMO ou MMSI...",
+            label_visibility="collapsed"
+        )
+
+    with c2:
+        selected_type = st.selectbox(
+            "Type de navire",
+            type_values,
+            label_visibility="collapsed"
+        )
+
+    with c3:
+        selected_pavillon = st.selectbox(
+            "Pavillon",
+            pavillon_values,
+            label_visibility="collapsed"
+        )
+
+    with c4:
+        selected_classification = st.selectbox(
+            "Société de classification",
+            classification_values,
+            label_visibility="collapsed"
+        )
+
+button_col_1, button_col_2, button_col_3, spacer = st.columns([1.1, 0.9, 1.2, 5])
+
+with button_col_1:
     launch = st.button("Lancer la recherche")
-with b2:
-    reset = st.button("Réinitialiser")
-with b3:
+
+with button_col_2:
+    if st.button("Réinitialiser"):
+        st.rerun()
+
+with button_col_3:
     export_placeholder = st.empty()
 
-if reset:
-    st.rerun()
+sql, params = build_main_query(
+    ctx,
+    search_text,
+    selected_type,
+    selected_pavillon,
+    selected_classification
+)
 
-sql, params = build_main_query(ctx, search_text, selected_type, selected_pavillon, selected_classification)
 try:
     results = run_query(sql, params)
 except Exception as error:
@@ -951,21 +1381,24 @@ except Exception as error:
     st.exception(error)
     results = pd.DataFrame()
 
-if not results.empty:
+if can_export_results() and not results.empty:
     csv_data = results.to_csv(index=False).encode("utf-8")
     export_placeholder.download_button(
-        label="Exporter les résultats",
+        label="Exporter CSV",
         data=csv_data,
         file_name="shipdata_resultats.csv",
         mime="text/csv"
     )
+elif not can_export_results():
+    export_placeholder.button("Export réservé", disabled=True)
 else:
-    export_placeholder.button("Exporter les résultats", disabled=True)
-
-st.markdown('</div>', unsafe_allow_html=True)
+    export_placeholder.button("Exporter CSV", disabled=True)
 
 
+# ------------------------------------------------------------
 # Résultats
+# ------------------------------------------------------------
+
 st.markdown('<div class="panel"><div class="panel-title">Résultats de recherche</div>', unsafe_allow_html=True)
 
 if results.empty:
@@ -982,13 +1415,17 @@ else:
 st.markdown('</div>', unsafe_allow_html=True)
 
 
-# Statistiques simples
+# ------------------------------------------------------------
+# Statistiques rapides
+# ------------------------------------------------------------
+
 st.markdown('<div class="panel"><div class="panel-title">Statistiques rapides</div>', unsafe_allow_html=True)
 
 chart_col1, chart_col2 = st.columns(2)
 
 with chart_col1:
     st.markdown("**Répartition des navires par type**")
+
     if ctx.get("type") and ctx.get("type_name") and ctx.get("id_type") and ctx.get("type_id"):
         chart_sql = f"""
             SELECT t.{q(ctx['type_name'])} AS type_navire, COUNT(*) AS nombre_navires
@@ -998,14 +1435,16 @@ with chart_col1:
             ORDER BY nombre_navires DESC
             LIMIT 10;
         """
+
         try:
             chart_df = run_query(chart_sql)
-            st.bar_chart(chart_df.set_index("type_navire"))
+            show_bar_chart_with_margins(chart_df, "type_navire", "nombre_navires")
         except Exception:
             st.info("Graphique indisponible avec les colonnes actuelles.")
 
 with chart_col2:
     st.markdown("**Top pavillons**")
+
     if ctx.get("pavillon") and ctx.get("pavillon_name") and ctx.get("id_pavillon") and ctx.get("pavillon_id"):
         chart_sql = f"""
             SELECT p.{q(ctx['pavillon_name'])} AS pavillon, COUNT(*) AS nombre_navires
@@ -1015,61 +1454,147 @@ with chart_col2:
             ORDER BY nombre_navires DESC
             LIMIT 10;
         """
+
         try:
             chart_df = run_query(chart_sql)
-            st.bar_chart(chart_df.set_index("pavillon"))
+            show_bar_chart_with_margins(chart_df, "pavillon", "nombre_navires")
         except Exception:
             st.info("Graphique indisponible avec les colonnes actuelles.")
+
+if get_current_role() in ["employe_capitaine", "administrateur"]:
+    chart_col3, chart_col4 = st.columns(2)
+
+    with chart_col3:
+        st.markdown("**Constructeurs les plus représentés**")
+
+        chart_sql = """
+            SELECT co.nom_constructeur AS constructeur, COUNT(*) AS nombre_navires
+            FROM navire n
+            JOIN constructeur co ON n.id_constructeur = co.id_constructeur
+            GROUP BY co.nom_constructeur
+            ORDER BY nombre_navires DESC
+            LIMIT 10;
+        """
+
+        try:
+            chart_df = run_query(chart_sql)
+            show_bar_chart_with_margins(chart_df, "constructeur", "nombre_navires")
+        except Exception:
+            st.info("Graphique indisponible.")
+
+    with chart_col4:
+        st.markdown("**Ports avec le plus d'escales**")
+
+        chart_sql = """
+            SELECT p.nom_port AS port, COUNT(e.id_escale) AS nombre_escales
+            FROM port p
+            JOIN escale e ON e.id_port = p.id_port
+            GROUP BY p.nom_port
+            ORDER BY nombre_escales DESC
+            LIMIT 10;
+        """
+
+        try:
+            chart_df = run_query(chart_sql)
+            show_bar_chart_with_margins(chart_df, "port", "nombre_escales")
+        except Exception:
+            st.info("Graphique indisponible.")
 
 st.markdown('</div>', unsafe_allow_html=True)
 
 
-# Requêtes SQL disponibles
-queries = predefined_queries(ctx)
-query_titles = list(queries.keys())
+# ------------------------------------------------------------
+# Requêtes SQL prédéfinies
+# ------------------------------------------------------------
 
-st.markdown('<div class="section-separator"></div>', unsafe_allow_html=True)
-left, right = st.columns([1.05, 1])
+if can_view_sql():
+    queries = predefined_queries()
+    query_titles = list(queries.keys())
 
-with left:
-    st.markdown('<div class="panel"><div class="panel-title">Requêtes SQL disponibles</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-separator"></div>', unsafe_allow_html=True)
+    left, right = st.columns([1.05, 1])
 
-    if "selected_query" not in st.session_state:
-        st.session_state.selected_query = query_titles[0] if query_titles else None
+    with left:
+        st.markdown(
+            '<div class="panel"><div class="panel-title">Requêtes SQL disponibles</div>',
+            unsafe_allow_html=True
+        )
 
-    for title in query_titles:
-        if st.button(title, key=f"query_{title}", use_container_width=True):
-            st.session_state.selected_query = title
+        if "selected_query" not in st.session_state:
+            st.session_state.selected_query = query_titles[0] if query_titles else None
 
-    st.markdown('</div>', unsafe_allow_html=True)
+        for title in query_titles:
+            if st.button(title, key=f"query_{title}", use_container_width=True):
+                st.session_state.selected_query = title
 
-with right:
-    st.markdown('<div class="panel"><div class="panel-title">Aperçu SQL</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    selected_sql = queries.get(st.session_state.get("selected_query"), "")
-    st.markdown(f'<div class="sql-box">{selected_sql}</div>', unsafe_allow_html=True)
+    with right:
+        st.markdown('<div class="panel"><div class="panel-title">Aperçu SQL</div>', unsafe_allow_html=True)
 
-    if selected_sql:
-        if st.button("Exécuter cette requête", use_container_width=True):
+        selected_sql = queries.get(st.session_state.get("selected_query"), "")
+        st.markdown(f'<div class="sql-box">{selected_sql}</div>', unsafe_allow_html=True)
+
+        if selected_sql:
+            if st.button("Exécuter cette requête", use_container_width=True):
+                try:
+                    query_result = run_query(selected_sql)
+                    st.dataframe(query_result, use_container_width=True, hide_index=True)
+                except Exception as error:
+                    st.error("Impossible d'exécuter cette requête.")
+                    st.exception(error)
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+
+# ------------------------------------------------------------
+# Requête personnalisée réservée à l'administrateur
+# ------------------------------------------------------------
+
+if is_admin():
+    st.markdown(
+        '<div class="panel"><div class="panel-title">Requête SELECT personnalisée</div>',
+        unsafe_allow_html=True
+    )
+
+    custom_sql = st.text_area(
+        "Écrire une requête SQL",
+        placeholder="SELECT * FROM navire LIMIT 10;",
+        height=130
+    )
+
+    if st.button("Exécuter la requête personnalisée"):
+        if is_safe_select_query(custom_sql):
             try:
-                query_result = run_query(selected_sql)
-                st.dataframe(query_result, use_container_width=True)
+                custom_result = run_query(custom_sql)
+                st.dataframe(custom_result, use_container_width=True, hide_index=True)
             except Exception as error:
                 st.error("Impossible d'exécuter cette requête.")
                 st.exception(error)
+        else:
+            st.warning("Seules les requêtes SELECT ou WITH sans modification de données sont autorisées.")
 
     st.markdown('</div>', unsafe_allow_html=True)
 
 
-# Structure de la base
-with st.expander("Voir la structure détectée de la base"):
-    st.write("Tables trouvées :", get_tables())
-    st.json({k: v for k, v in ctx.items() if v is not None})
+# ------------------------------------------------------------
+# Structure de la base réservée à l'administrateur
+# ------------------------------------------------------------
+
+if is_admin():
+    with st.expander("Voir la structure détectée de la base"):
+        st.write("Tables trouvées :", get_tables())
+        st.json({key: value for key, value in ctx.items() if value is not None})
+
+
+# ------------------------------------------------------------
+# Pied de page
+# ------------------------------------------------------------
 
 st.markdown(
     """
     <div style="text-align:center;color:#94a3b8;font-size:0.85rem;margin-top:2.5rem;">
-        Projet de bases de données — ShipData / VesselRegistry — Interface prototype Streamlit
+        Projet de bases de données — ShipData — Interface Streamlit avec rôles utilisateur
     </div>
     """,
     unsafe_allow_html=True
