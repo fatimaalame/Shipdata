@@ -164,22 +164,19 @@ Dans DBeaver :
 01_create_tables.sql
 02_constraints.sql
 03_insert_data.sql
-05_views.sql
-04_nos_requetes.sql
 ```
 
 Le rôle des fichiers est le suivant :
 
-| Fichier | Rôle |
-| --- | --- |
+| Fichier                | Rôle |
+|------------------------| --- |
 | `01_create_tables.sql` | Crée les tables de la base. |
-| `02_constraints.sql` | Ajoute les clés primaires, les clés étrangères, les contraintes `UNIQUE` et les contraintes `CHECK`. |
-| `03_insert_data.sql` | Indique l'ordre d'insertion des données depuis les fichiers CSV. |
-| `05_views.sql` | Crée les vues SQL si elles sont utilisées. |
-| `04_nos_requetes.sql` | Contient les requêtes SQL principales du projet. |
-| `06_drop_tables.sql` | Supprime les tables. Ce fichier doit seulement être utilisé pour recommencer la base à zéro. |
+| `02_constraints.sql`   | Ajoute les clés primaires, les clés étrangères, les contraintes `UNIQUE` et les contraintes `CHECK`. |
+| `03_insert_data.sql`   | Indique l'ordre d'insertion des données depuis les fichiers CSV. |
+| `04_nos_requetes.sql`  | Contient les requêtes SQL principales du projet. |
+| `05_drop_tables.sql`   | Supprime les tables. Ce fichier doit seulement être utilisé pour recommencer la base à zéro. |
 
-Important : ne pas exécuter `06_drop_tables.sql`, sauf si l'objectif est de supprimer les tables existantes.
+Important : ne pas exécuter `05_drop_tables.sql`, sauf si l'objectif est de supprimer les tables existantes.
 
 ## 7. Configuration de la connexion PostgreSQL
 
