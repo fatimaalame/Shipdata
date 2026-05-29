@@ -1,34 +1,34 @@
 # ShipData: Structure et analyse des flottes maritimes
 
-Projet de base de données, Printemps 2026  
-Groupe 04  
+Projet de base de données - Printemps 2026
+Groupe 04
 Fatima Alame / Ramine Yunus / Gabriel Olivier Thorens / Anqi Liu / Matsvei Hamza / Kevin Nash Calegari
 
 ## 1. Description du projet
 
 ShipData est une base de données relationnelle qui permet de stocker et d'interroger des informations sur des navires internationaux.
 
-La base contient des données comme :
+La base contient des données telles que :
 
 - le numéro IMO du navire ;
 - le nom du navire ;
 - le type de navire ;
 - l'année de construction ;
 - le pavillon ;
-- les caractéristiques techniques comme le tonnage, la longueur, la largeur ou le tirant d'eau ;
+- les caractéristiques techniques (comme le tonnage, la longueur, la largeur ou le tirant d'eau) ;
 - la société de classification ;
 - le constructeur ;
 - le propriétaire ;
 - les ports et les escales.
 
-Le but du projet n'est pas seulement de stocker des données, mais aussi de pouvoir les interroger avec des requêtes SQL utiles pour analyser une flotte maritime. L'application permet par exemple de trouver les navires les plus anciens, de comparer les types de navires, de repérer les pavillons les plus fréquents, d'identifier les constructeurs les plus représentés ou encore de rechercher des navires selon plusieurs critères.
+Le but du projet n'est pas seulement de stocker des données, mais aussi de pouvoir les interroger grâce à des requêtes SQL utiles pour analyser une flotte maritime. L'application permet par exemple de trouver les navires les plus anciens, de comparer les types de navires, de repérer les pavillons les plus fréquents, d'identifier les constructeurs les plus représentés ou encore de rechercher des navires selon plusieurs critères.
 
 ## 2. Utilisateurs possibles
 
 L'application peut être utilisée par :
 
-- des étudiants ou chercheurs qui veulent analyser des données maritimes ;
-- des analystes en logistique et transport international ;
+- des étudiants ou des chercheurs qui veulent analyser des données maritimes ;
+- des analystes en logistique et en transport international ;
 - des autorités portuaires ;
 - des compagnies maritimes ;
 - des personnes intéressées par les navires, leur origine, leur âge ou leur activité.
@@ -42,25 +42,25 @@ Tables principales du projet :
 | Table | Rôle |
 | --- | --- |
 | `categorie_principale` | Stocke les grandes catégories de navires. |
-| `type_navire` | Stocke les types précis de navires : cargo, tanker, tug, passenger ship, etc. |
+| `type_navire` | Stocke les types précis de navires : cargo, navire-citerne (tanker), remorqueur (tug), navires à passager (passenger ship), etc. |
 | `pavillon` | Stocke les pays de pavillon des navires. |
 | `societe_classification` | Stocke les sociétés de classification. |
 | `port` | Stocke les ports liés aux escales. |
-| `constructeur` | Stocke les chantiers navals / builders. |
+| `constructeur` | Stocke les chantiers navals (builders). |
 | `proprietaire` | Stocke les entreprises propriétaires des navires. |
 | `navire` | Stocke les informations principales sur chaque navire. |
 | `propriete_navire` | Stocke l'historique des propriétaires des navires. |
-| `escale` | Stocke les arrivées et départs des navires dans les ports. |
+| `escale` | Stocke les arrivées et les départs des navires dans les ports. |
 
 ## 4. Technologies utilisées
 
-- PostgreSQL : système de gestion de base de données relationnelle.
-- SQL : création, remplissage et interrogation de la base.
-- Python : langage utilisé pour lancer l'interface.
-- Streamlit : interface simple pour consulter et interroger la base.
-- Pandas : affichage et manipulation des résultats SQL.
-- psycopg2-binary : connexion entre Python et PostgreSQL.
-- Altair : création de graphiques dans l'interface Streamlit.
+- **PostgreSQL** : système de gestion de base de données relationnelle (SGBD).
+- **SQL** : création, remplissage et interrogation de la base.
+- **Python** : langage utilisé pour lancer l'interface.
+- **Streamlit** : interface simple pour consulter et interroger la base.
+- **Pandas** : affichage et manipulation des résultats SQL.
+- **psycopg2-binary** : connexion entre Python et PostgreSQL.
+- **Altair** : création de graphiques dans l'interface Streamlit.
 
 ## 5. Installation
 
@@ -78,7 +78,16 @@ Sur macOS ou Linux, la commande peut aussi être :
 python3 --version
 ```
 
-### 5.2 Créer un environnement virtuel
+### 5.2 Cloner le projet
+
+Depuis le dossier racine du projet :
+
+```bash
+git clone https://github.com/fatimaalame/Shipdata/tree/main
+cd Shipdata
+```
+
+### 5.3 Créer un environnement virtuel
 
 Depuis le dossier racine du projet :
 
@@ -98,7 +107,7 @@ Sur Windows PowerShell :
 .\.venv\Scripts\Activate.ps1
 ```
 
-Si PowerShell bloque l'activation de l'environnement virtuel, exécuter temporairement :
+Si PowerShell bloque l'activation de l'environnement virtuel, exécuter temporairement la commande suivante :
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
@@ -110,9 +119,9 @@ Puis relancer :
 .\.venv\Scripts\Activate.ps1
 ```
 
-### 5.3 Installer les librairies Python
+### 5.4 Installer les librairies Python
 
-Avec le fichier `requirements.txt` :
+Installer les dépendances à l'aide du fichier `requirements.txt` :
 
 ```bash
 pip install -r requirements.txt
@@ -137,7 +146,7 @@ Créer une base de données PostgreSQL nommée par exemple :
 shipdata
 ```
 
-La création peut se faire dans DBeaver, pgAdmin ou directement avec PostgreSQL.
+La création peut se faire via DBeaver, pgAdmin ou directement avec des lignes de commandes PostgreSQL.
 
 Dans DBeaver, il est possible de créer la base avec la commande suivante :
 
@@ -168,15 +177,15 @@ Dans DBeaver :
 
 Le rôle des fichiers est le suivant :
 
-| Fichier                | Rôle |
-|------------------------| --- |
+| Fichier | Rôle |
+| --- | --- |
 | `01_create_tables.sql` | Crée les tables de la base. |
-| `02_constraints.sql`   | Ajoute les clés primaires, les clés étrangères, les contraintes `UNIQUE` et les contraintes `CHECK`. |
-| `03_insert_data.sql`   | Indique l'ordre d'insertion des données depuis les fichiers CSV. |
-| `04_nos_requetes.sql`  | Contient les requêtes SQL principales du projet. |
-| `05_drop_tables.sql`   | Supprime les tables. Ce fichier doit seulement être utilisé pour recommencer la base à zéro. |
+| `02_constraints.sql` | Ajoute les clés primaires, les clés étrangères, ainsi que les contraintes `UNIQUE` et les contraintes `CHECK`. |
+| `03_insert_data.sql` | Indique l'ordre d'insertion des données depuis les fichiers CSV. |
+| `04_nos_requetes.sql` | Contient les requêtes SQL principales du projet. |
+| `05_drop_tables.sql` | Supprime les tables. Ce fichier doit uniquement être utilisé pour réinitialiser la base à zéro. |
 
-Important : ne pas exécuter `05_drop_tables.sql`, sauf si l'objectif est de supprimer les tables existantes.
+Important : ne pas exécuter `05_drop_tables.sql`, sauf si l'objectif est de supprimer l'ensemble des tables existantes.
 
 ## 7. Configuration de la connexion PostgreSQL
 
@@ -198,13 +207,13 @@ Créer un fichier `config.json` au même niveau que `README.md` avec le contenu 
 
 - `host` : généralement `localhost` si la base est sur votre ordinateur ;
 - `port` : généralement `5432` pour PostgreSQL ;
-- `user` : votre utilisateur PostgreSQL ;
+- `user` : votre nom d'utilisateur PostgreSQL ;
 - `password` : votre mot de passe PostgreSQL ;
-- `database` : le nom de votre base ShipData.
+- `database` : le nom de votre base de donnés (ShipData).
 
-Important : le fichier `config.json` contient un mot de passe local. Il ne doit pas être envoyé sur GitHub.
+Important : le fichier `config.json` contient un mot de passe local. Il ne doit pas être poussé sur GitHub.
 
-Il est recommandé d'ajouter cette ligne dans `.gitignore` :
+Il est fortement recommandé d'ajouter cette ligne dans `.gitignore` :
 
 ```gitignore
 config.json
@@ -212,8 +221,8 @@ config.json
 
 ## 8. Lancer l'interface
 
-Depuis la racine du projet, lancer la commande suivante : 
-Remarque importante : la base de données « shipdata » et le fichier « config.json » doivent être configurés avant d’exécuter le programme !
+**Remarque importante** : la base de données « shipdata » et le fichier « config.json » doivent être configurés avant d’exécuter le programme !
+Depuis la racine du projet, lancer la commande suivante :
 
 ```bash
 python -m streamlit run ./07_RAPPORT_FINAL/streamlit_app.py
@@ -235,108 +244,68 @@ http://localhost:8501/
 
 L'interface permet de :
 
-- se connecter avec un rôle utilisateur ;
-- vérifier la connexion à PostgreSQL ;
+- accéder à l'application en mode **visiteur** sans connexion ;
+- se connecter avec différents rôles utilisateur : **propriétaire** ou **administrateur** ;
+- afficher une page d'accueil personnalisée avec une image de fond et le logo ShipDATA ;
+- naviguer avec une barre supérieure moderne contenant un menu utilisateur ;
+- consulter la liste des navires sous forme de cartes détaillées ;
 - rechercher un navire par nom, numéro IMO ou MMSI ;
-- filtrer les navires par type, pavillon ou société de classification ;
-- afficher des indicateurs simples : nombre de navires, nombre de pavillons, nombre de ports et nombre de sociétés de classification ;
-- afficher les résultats dans un tableau lisible ;
-- visualiser des graphiques simples ;
-- exécuter des requêtes SQL prédéfinies ;
-- exporter les résultats en CSV pour certains rôles ;
+- filtrer les navires par type ou par pavillon ;
+- afficher des informations différentes selon le rôle connecté ;
+- limiter certaines informations avancées aux propriétaires et aux administrateurs ;
+- consulter des indicateurs simples : nombre de navires, pavillons, ports et sociétés de classification ;
+- visualiser des graphiques simples sur les types de navires, pavillons, constructeurs et ports ;
+- remplir une demande pour devenir propriétaire ;
+- accéder à une page d'achat ou de demande d'ajout de bateau ;
+- exporter les résultats en CSV pour les rôles autorisés ;
+- exécuter des requêtes SQL prédéfinies pour les rôles avancés ;
 - exécuter une requête `SELECT` personnalisée pour l'administrateur ;
-- afficher la structure détectée de la base pour l'administrateur.
+- ajouter ou modifier certaines données de la base via le compte administrateur ;
+- utiliser les fichiers CSV du dossier `02_DONNEES` comme données de secours si la base PostgreSQL n'est pas disponible.
 
-## 10. Gestion des rôles utilisateur dans l'interface
+## 10. Interface Streamlit
 
-L'interface Streamlit inclut un système de connexion simple permettant d'afficher des informations différentes selon le type d'utilisateur connecté. Cette fonctionnalité sert à simuler plusieurs niveaux d'accès dans l'application.
+Le projet contient une interface web développée avec Streamlit. Elle se lance depuis le fichier principal :
 
-Les comptes sont des comptes de démonstration définis directement dans le fichier `streamlit_app.py`. Ils ne doivent pas être considérés comme un système d'authentification sécurisé pour une application réelle, mais ils permettent de montrer comment l'interface peut adapter les données affichées selon le rôle de l'utilisateur.
+```bash
+python -m streamlit run .\07_RAPPORT_FINAL\streamlit_app.py
+```
 
-### 10.1 Comptes disponibles
+L'application utilise une base PostgreSQL configurée avec un fichier `config.json` placé à la racine du projet. Ce fichier doit contenir les informations de connexion locales de chaque utilisateur. Il ne doit pas être partagé directement sur GitHub, car le mot de passe peut être différent selon les ordinateurs.
 
-| Identifiant | Mot de passe | Rôle affiché |
-| --- | --- | --- |
-| `client` | `client123` | Client |
-| `capitaine` | `capitaine123` | Employé / capitaine |
-| `employe` | `employe123` | Employé / capitaine |
-| `admin` | `admin123` | Administrateur |
+Exemple de structure attendue :
 
-### 10.2 Rôle Client
+```json
+{
+  "host": "localhost",
+  "port": 5432,
+  "user": "postgres",
+  "password": "votre_mot_de_passe",
+  "database": "shipdata"
+}
+```
 
-Le rôle `Client` correspond à un utilisateur externe qui consulte seulement les informations principales sur les navires.
+Les fichiers CSV utilisés pour les données de secours ou l'importation doivent se trouver dans le dossier :
 
-Le client peut voir :
+```text
+02_DONNEES
+```
 
-- le tableau de bord général ;
-- les métriques principales ;
-- la recherche simple de navires ;
-- les statistiques générales ;
-- les informations publiques des navires : IMO, nom du navire, type, année de construction, pavillon et longueur.
+L'interface contient maintenant plusieurs rôles :
 
-Le client ne peut pas voir :
+- **Visiteur** : accès sans connexion, consultation simple des navires
+- **Propriétaire** : accès avec compte, informations plus détaillées sur les navires
+- **Administrateur** : accès complet, gestion des données et requêtes avancées
 
-- les requêtes SQL prédéfinies ;
-- la requête SQL personnalisée ;
-- la structure détectée de la base ;
-- l'export CSV ;
-- les données plus techniques comme le MMSI, le GT, le DWT, le constructeur ou le propriétaire actuel.
+La page d'accueil utilise une image de fond et un logo stockés dans :
 
-### 10.3 Rôle Employé / capitaine
+```text
+07_RAPPORT_FINAL/INTERFACE
+```
 
-Le rôle `Employé / capitaine` correspond à un utilisateur interne qui a besoin de consulter des informations plus détaillées pour l'analyse ou le suivi opérationnel.
+Le logo ShipDATA et l'image de fond doivent donc être conservés dans ce dossier pour que l'interface s'affiche correctement sur tous les ordinateurs.
 
-L'employé ou capitaine peut voir :
-
-- le tableau de bord général ;
-- la recherche avancée ;
-- les filtres par type de navire, pavillon et société de classification ;
-- les informations détaillées des navires : IMO, MMSI, nom, type, année, pavillon, GT, DWT, longueur, classification et propriétaire actuel ;
-- l'export CSV des résultats ;
-- les graphiques supplémentaires ;
-- les requêtes SQL prédéfinies du projet.
-
-L'employé ou capitaine ne peut pas voir :
-
-- la requête SQL personnalisée ;
-- la structure détectée de la base ;
-- les informations de diagnostic réservées à l'administrateur.
-
-Dans cette version de l'application, les comptes `capitaine` et `employe` ont les mêmes droits. Ils sont séparés uniquement pour représenter deux profils possibles d'utilisateurs internes.
-
-### 10.4 Rôle Administrateur
-
-Le rôle `Administrateur` correspond à l'utilisateur ayant l'accès le plus complet à l'interface.
-
-L'administrateur peut voir :
-
-- le tableau de bord général ;
-- la recherche avancée complète ;
-- toutes les colonnes disponibles dans les résultats ;
-- les informations techniques comme la largeur, le tirant d'eau, le constructeur et le propriétaire actuel ;
-- l'export CSV ;
-- tous les graphiques ;
-- toutes les requêtes SQL prédéfinies ;
-- la requête SQL personnalisée ;
-- la structure détectée de la base PostgreSQL.
-
-La requête SQL personnalisée est limitée aux requêtes de lecture. L'interface autorise uniquement les requêtes commençant par `SELECT` ou `WITH`. Les commandes pouvant modifier ou supprimer les données, comme `DROP`, `DELETE`, `UPDATE`, `INSERT`, `ALTER`, `CREATE` ou `TRUNCATE`, sont bloquées.
-
-### 10.5 Résumé des droits
-
-| Fonctionnalité | Client | Employé / capitaine | Administrateur |
-| --- | ---: | ---: | ---: |
-| Connexion à l'interface | Oui | Oui | Oui |
-| Tableau de bord général | Oui | Oui | Oui |
-| Recherche de navires | Oui | Oui | Oui |
-| Filtres avancés | Partiel | Oui | Oui |
-| Affichage des données publiques | Oui | Oui | Oui |
-| Affichage des données techniques | Non | Partiel | Oui |
-| Export CSV | Non | Oui | Oui |
-| Graphiques statistiques | Oui | Oui | Oui |
-| Requêtes SQL prédéfinies | Non | Oui | Oui |
-| Requête SQL personnalisée | Non | Non | Oui |
-| Structure détectée de la base | Non | Non | Oui |
+L'interface permet notamment de consulter les navires sous forme de cartes, d'utiliser des filtres de recherche, d'accéder à des informations avancées selon le rôle connecté, et de remplir une demande pour devenir propriétaire. La gestion réelle des ajouts et modifications de données reste réservée au compte administrateur.
 
 ## 11. Exemples de requêtes prévues
 
@@ -389,5 +358,5 @@ ShipData/
 - Les requêtes importantes doivent aussi être présentes dans le rapport final.
 - Si une table ou une colonne n'apparaît pas dans l'interface, il faut vérifier que les scripts SQL ont bien été exécutés dans la bonne base.
 - Si la connexion échoue, il faut vérifier le fichier `config.json`, surtout le nom de la base, l'utilisateur et le mot de passe.
-- Le fichier `config.json` ne doit pas être envoyé sur GitHub.
+- Le fichier `config.json` ne doit ****jamais**** être envoyé sur GitHub.
 - Les identifiants de connexion dans Streamlit sont des comptes de démonstration et ne constituent pas une authentification sécurisée pour une application réelle.
