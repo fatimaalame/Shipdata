@@ -275,7 +275,7 @@ st.markdown(
 
     .main-content {
         padding: 0.45rem 0 3.2rem 0;
-        margin-top: 6.2rem;
+        margin-top: 7.1rem;
     }
 
     .topbar {
@@ -287,7 +287,7 @@ st.markdown(
 
         background: linear-gradient(90deg, var(--navy-dark), var(--navy));
         color: white;
-        padding: 0.9rem var(--page-x);
+        padding: 1.05rem var(--page-x);
 
         display: flex;
         justify-content: space-between;
@@ -305,8 +305,8 @@ st.markdown(
 
     .topbar-logo {
         display: block;
-        width: clamp(150px, 16vw, 230px);
-        max-height: 58px;
+        width: clamp(190px, 20vw, 300px);
+        max-height: 76px;
         object-fit: contain;
     }
 
