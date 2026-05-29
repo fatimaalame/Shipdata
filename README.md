@@ -215,7 +215,8 @@ config.json
 
 ## 8. Lancer l'interface
 
-Depuis la racine du projet, lancer la commande suivante :
+Depuis la racine du projet, lancer la commande suivante : 
+Remarque importante : la base de données « shipdata » et le fichier « config.json » doivent être configurés avant d’exécuter le programme !
 
 ```bash
 python -m streamlit run ./07_RAPPORT_FINAL/streamlit_app.py
