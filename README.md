@@ -237,108 +237,68 @@ http://localhost:8501/
 
 L'interface permet de :
 
-- se connecter avec un rôle utilisateur ;
-- vérifier la connexion à PostgreSQL ;
+- accéder à l'application en mode **visiteur** sans connexion ;
+- se connecter avec différents rôles utilisateur : **propriétaire** ou **administrateur** ;
+- afficher une page d'accueil personnalisée avec une image de fond et le logo ShipDATA ;
+- naviguer avec une barre supérieure moderne contenant un menu utilisateur ;
+- consulter la liste des navires sous forme de cartes détaillées ;
 - rechercher un navire par nom, numéro IMO ou MMSI ;
-- filtrer les navires par type, pavillon ou société de classification ;
-- afficher des indicateurs simples : nombre de navires, nombre de pavillons, nombre de ports et nombre de sociétés de classification ;
-- afficher les résultats dans un tableau lisible ;
-- visualiser des graphiques simples ;
-- exécuter des requêtes SQL prédéfinies ;
-- exporter les résultats en CSV pour certains rôles ;
+- filtrer les navires par type ou par pavillon ;
+- afficher des informations différentes selon le rôle connecté ;
+- limiter certaines informations avancées aux propriétaires et aux administrateurs ;
+- consulter des indicateurs simples : nombre de navires, pavillons, ports et sociétés de classification ;
+- visualiser des graphiques simples sur les types de navires, pavillons, constructeurs et ports ;
+- remplir une demande pour devenir propriétaire ;
+- accéder à une page d'achat ou de demande d'ajout de bateau ;
+- exporter les résultats en CSV pour les rôles autorisés ;
+- exécuter des requêtes SQL prédéfinies pour les rôles avancés ;
 - exécuter une requête `SELECT` personnalisée pour l'administrateur ;
-- afficher la structure détectée de la base pour l'administrateur.
+- ajouter ou modifier certaines données de la base via le compte administrateur ;
+- utiliser les fichiers CSV du dossier `02_DONNEES` comme données de secours si la base PostgreSQL n'est pas disponible.
 
-## 10. Gestion des rôles utilisateur dans l'interface
+## 10. Interface Streamlit
 
-L'interface Streamlit inclut un système de connexion simple permettant d'afficher des informations différentes selon le type d'utilisateur connecté. Cette fonctionnalité sert à simuler plusieurs niveaux d'accès dans l'application.
+Le projet contient une interface web développée avec Streamlit. Elle se lance depuis le fichier principal :
 
-Les comptes sont des comptes de démonstration définis directement dans le fichier `streamlit_app.py`. Ils ne doivent pas être considérés comme un système d'authentification sécurisé pour une application réelle, mais ils permettent de montrer comment l'interface peut adapter les données affichées selon le rôle de l'utilisateur.
+```bash
+python -m streamlit run .\07_RAPPORT_FINAL\streamlit_app.py
+```
 
-### 10.1 Comptes disponibles
+L'application utilise une base PostgreSQL configurée avec un fichier `config.json` placé à la racine du projet. Ce fichier doit contenir les informations de connexion locales de chaque utilisateur. Il ne doit pas être partagé directement sur GitHub, car le mot de passe peut être différent selon les ordinateurs.
 
-| Identifiant | Mot de passe | Rôle affiché |
-| --- | --- | --- |
-| `client` | `client123` | Client |
-| `capitaine` | `capitaine123` | Employé / capitaine |
-| `employe` | `employe123` | Employé / capitaine |
-| `admin` | `admin123` | Administrateur |
+Exemple de structure attendue :
 
-### 10.2 Rôle Client
+```json
+{
+  "host": "localhost",
+  "port": 5432,
+  "user": "postgres",
+  "password": "votre_mot_de_passe",
+  "database": "shipdata"
+}
+```
 
-Le rôle `Client` correspond à un utilisateur externe qui consulte seulement les informations principales sur les navires.
+Les fichiers CSV utilisés pour les données de secours ou l'importation doivent se trouver dans le dossier :
 
-Le client peut voir :
+```text
+02_DONNEES
+```
 
-- le tableau de bord général ;
-- les métriques principales ;
-- la recherche simple de navires ;
-- les statistiques générales ;
-- les informations publiques des navires : IMO, nom du navire, type, année de construction, pavillon et longueur.
+L'interface contient maintenant plusieurs rôles :
 
-Le client ne peut pas voir :
+- **Visiteur** : accès sans connexion, consultation simple des navires
+- **Propriétaire** : accès avec compte, informations plus détaillées sur les navires
+- **Administrateur** : accès complet, gestion des données et requêtes avancées
 
-- les requêtes SQL prédéfinies ;
-- la requête SQL personnalisée ;
-- la structure détectée de la base ;
-- l'export CSV ;
-- les données plus techniques comme le MMSI, le GT, le DWT, le constructeur ou le propriétaire actuel.
+La page d'accueil utilise une image de fond et un logo stockés dans :
 
-### 10.3 Rôle Employé / capitaine
+```text
+07_RAPPORT_FINAL/INTERFACE
+```
 
-Le rôle `Employé / capitaine` correspond à un utilisateur interne qui a besoin de consulter des informations plus détaillées pour l'analyse ou le suivi opérationnel.
+Le logo ShipDATA et l'image de fond doivent donc être conservés dans ce dossier pour que l'interface s'affiche correctement sur tous les ordinateurs.
 
-L'employé ou capitaine peut voir :
-
-- le tableau de bord général ;
-- la recherche avancée ;
-- les filtres par type de navire, pavillon et société de classification ;
-- les informations détaillées des navires : IMO, MMSI, nom, type, année, pavillon, GT, DWT, longueur, classification et propriétaire actuel ;
-- l'export CSV des résultats ;
-- les graphiques supplémentaires ;
-- les requêtes SQL prédéfinies du projet.
-
-L'employé ou capitaine ne peut pas voir :
-
-- la requête SQL personnalisée ;
-- la structure détectée de la base ;
-- les informations de diagnostic réservées à l'administrateur.
-
-Dans cette version de l'application, les comptes `capitaine` et `employe` ont les mêmes droits. Ils sont séparés uniquement pour représenter deux profils possibles d'utilisateurs internes.
-
-### 10.4 Rôle Administrateur
-
-Le rôle `Administrateur` correspond à l'utilisateur ayant l'accès le plus complet à l'interface.
-
-L'administrateur peut voir :
-
-- le tableau de bord général ;
-- la recherche avancée complète ;
-- toutes les colonnes disponibles dans les résultats ;
-- les informations techniques comme la largeur, le tirant d'eau, le constructeur et le propriétaire actuel ;
-- l'export CSV ;
-- tous les graphiques ;
-- toutes les requêtes SQL prédéfinies ;
-- la requête SQL personnalisée ;
-- la structure détectée de la base PostgreSQL.
-
-La requête SQL personnalisée est limitée aux requêtes de lecture. L'interface autorise uniquement les requêtes commençant par `SELECT` ou `WITH`. Les commandes pouvant modifier ou supprimer les données, comme `DROP`, `DELETE`, `UPDATE`, `INSERT`, `ALTER`, `CREATE` ou `TRUNCATE`, sont bloquées.
-
-### 10.5 Résumé des droits
-
-| Fonctionnalité | Client | Employé / capitaine | Administrateur |
-| --- | ---: | ---: | ---: |
-| Connexion à l'interface | Oui | Oui | Oui |
-| Tableau de bord général | Oui | Oui | Oui |
-| Recherche de navires | Oui | Oui | Oui |
-| Filtres avancés | Partiel | Oui | Oui |
-| Affichage des données publiques | Oui | Oui | Oui |
-| Affichage des données techniques | Non | Partiel | Oui |
-| Export CSV | Non | Oui | Oui |
-| Graphiques statistiques | Oui | Oui | Oui |
-| Requêtes SQL prédéfinies | Non | Oui | Oui |
-| Requête SQL personnalisée | Non | Non | Oui |
-| Structure détectée de la base | Non | Non | Oui |
+L'interface permet notamment de consulter les navires sous forme de cartes, d'utiliser des filtres de recherche, d'accéder à des informations avancées selon le rôle connecté, et de remplir une demande pour devenir propriétaire. La gestion réelle des ajouts et modifications de données reste réservée au compte administrateur.
 
 ## 11. Exemples de requêtes prévues
 
