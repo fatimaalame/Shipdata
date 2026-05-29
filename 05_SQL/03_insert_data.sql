@@ -1,13 +1,3 @@
--- =============================================================
---  03_insert_data.sql
---  Remise à zéro et insertion de toutes les données de référence
---  Ordre de suppression : dépendants d'abord (FK oblige)
---  Ordre d'insertion   : parents d'abord
--- =============================================================
-
--- -------------------------------------------------------------
--- 0. NETTOYAGE (ordre inverse des dépendances FK)
--- -------------------------------------------------------------
 DELETE FROM escale;
 DELETE FROM propriete_navire;
 DELETE FROM navire;
@@ -20,9 +10,7 @@ DELETE FROM type_navire;
 DELETE FROM categorie_principale;
 
 
--- -------------------------------------------------------------
 -- 1. CATEGORIE_PRINCIPALE
--- -------------------------------------------------------------
 INSERT INTO categorie_principale (id_categorie, nom_categorie, description) VALUES
 (1, 'Cargo sec',            'Marchandises solides en vrac, marchandises diverses, conteneurs'),
 (2, 'Cargo liquide',        'Liquides en vrac (petrole, gaz liquefie, produits chimiques)'),
@@ -34,9 +22,7 @@ INSERT INTO categorie_principale (id_categorie, nom_categorie, description) VALU
 (8, 'Autre',                'Categorie residuelle (loisirs, peche, militaire, recherche)');
 
 
--- -------------------------------------------------------------
 -- 2. TYPE_NAVIRE
--- -------------------------------------------------------------
 INSERT INTO type_navire (id_type_navire, nom_type, id_categorie, description) VALUES
 (1500, 'General cargo vessel',                            1, 'Navire cargo general'),
 (1510, 'Container ship, ro-ro cargo ship, or lash ship',  1, 'Porte-conteneurs, navire ro-ro cargo ou lash ship'),
@@ -52,9 +38,7 @@ INSERT INTO type_navire (id_type_navire, nom_type, id_categorie, description) VA
 (8030, 'Container vessel',                                7, 'Navire transportant des conteneurs en navigation interieure');
 
 
--- -------------------------------------------------------------
 -- 3. PAVILLON
--- -------------------------------------------------------------
 INSERT INTO pavillon (id_pavillon, nom_pays, code_iso2, code_iso3) VALUES
 (1,   'Panama',                           'PA', 'PAN'),
 (2,   'Liberia',                          'LR', 'LBR'),
@@ -172,9 +156,7 @@ INSERT INTO pavillon (id_pavillon, nom_pays, code_iso2, code_iso3) VALUES
 (114, 'Sudan',                            'SD', 'SDN');
 
 
--- -------------------------------------------------------------
 -- 4. SOCIETE_CLASSIFICATION
--- -------------------------------------------------------------
 INSERT INTO societe_classification (id_societe_classification, nom_societe, sigle, code_iso2_pays, site_web) VALUES
 (1,  'American Bureau of Shipping',           'ABS',     'US', 'https://ww2.eagle.org'),
 (2,  'Bureau Veritas Marine & Offshore',      'BV',      'FR', 'https://marine-offshore.bureauveritas.com'),
@@ -198,9 +180,7 @@ INSERT INTO societe_classification (id_societe_classification, nom_societe, sigl
 (20, 'Shipping Register of Ukraine',          'SRU',     'UA', 'https://shipregister.ua');
 
 
--- -------------------------------------------------------------
 -- 5. PORT
--- -------------------------------------------------------------
 INSERT INTO port (id_port, nom_port, nom_formel, code_iso2_pays, latitude, longitude, taille_port, type_port, capacite_max_navire) VALUES
 (2235,  'Montreal',                    'Port of Montreal',                    'CA',  45.516670,  -73.550000, 'Large',      'River Natural',      'Over 500'''),
 (7640,  'New York City',               'Port of New York City',               'US',  40.700000,  -74.016670, 'Large',      'River Natural',      'Over 500'''),
@@ -314,9 +294,7 @@ INSERT INTO port (id_port, nom_port, nom_formel, code_iso2_pays, latitude, longi
 (61560, 'Kobe',                        'Port of Kobe',                        'JP',  34.650000,  135.180000, 'Large',      'Open Roadstead',     'Over 500''');
 
 
--- -------------------------------------------------------------
 -- 6. CONSTRUCTEUR
--- -------------------------------------------------------------
 INSERT INTO constructeur (id_constructeur, nom_constructeur, code_iso2_pays, annee_fondation, ville_chantier) VALUES
 (1,  'Hyundai Marine Works Ltd',       'KR', 1972, 'Ulsan'),
 (2,  'Daewoo Shipbuilding Corp',       'KR', 1973, 'Geoje'),
@@ -338,9 +316,7 @@ INSERT INTO constructeur (id_constructeur, nom_constructeur, code_iso2_pays, ann
 (18, 'Sembcorp Marine Ltd',            'SG', 1963, 'Singapore');
 
 
--- -------------------------------------------------------------
 -- 7. PROPRIETAIRE
--- -------------------------------------------------------------
 INSERT INTO proprietaire (id_proprietaire, nom_proprietaire, code_iso2_pays, annee_creation, ville_siege) VALUES
 (1,  'CMA CGM Group',                'FR', 1978, 'Marseille'),
 (2,  'Evergreen Marine Corporation', 'SG', 1968, 'Singapore'),
@@ -362,9 +338,7 @@ INSERT INTO proprietaire (id_proprietaire, nom_proprietaire, code_iso2_pays, ann
 (18, 'Nordic Bulk Carriers AS',      'NO', 1986, 'Oslo');
 
 
--- -------------------------------------------------------------
 -- 8. NAVIRE
--- -------------------------------------------------------------
 INSERT INTO navire (imo, mmsi, nom_navire, id_type_navire, id_pavillon, annee_construction, gross_tonnage, deadweight_tonnage, longueur_m, largeur_m, tirant_eau_m, id_societe_classification, id_constructeur) VALUES
 (8206533,  374729000, 'NIVIN',                   1500, 1,   1983,   5462,   1626,  88.02, 18.01,  3.96,  1,  8),
 (9693305,  353465000, 'BUENA DIOSA',             1540, 1,   2014,   2999,   3177,  96.00, 15.00,  4.80,  9, 17),
@@ -413,9 +387,7 @@ INSERT INTO navire (imo, mmsi, nom_navire, id_type_navire, id_pavillon, annee_co
 (7234561,  211100100, 'RHEIN TRANSPORTER',       8030, 11,  1985,   1850,   2400, 110.00, 11.40,  2.75,  5, 16);
 
 
--- -------------------------------------------------------------
 -- 9. PROPRIETE_NAVIRE
--- -------------------------------------------------------------
 INSERT INTO propriete_navire (imo, id_proprietaire, date_debut, date_fin) VALUES
 (7104972,  14, '1994-01-15', NULL),
 (7234561,  11, '1985-05-15', NULL),
@@ -500,9 +472,7 @@ INSERT INTO propriete_navire (imo, id_proprietaire, date_debut, date_fin) VALUES
 (9987213,   1, '2025-12-01', NULL);
 
 
--- -------------------------------------------------------------
 -- 10. ESCALE
--- -------------------------------------------------------------
 INSERT INTO escale (id_escale, imo, id_port, date_arrivee, heure_arrivee, date_depart, heure_depart) VALUES
 (1,  8206533, 39440, '2023-04-16', '17:00:00', '2023-04-17', '09:30:00'),
 (2,  9641845, 39440, '2023-04-15', '06:30:00', '2023-04-15', '22:00:00'),
