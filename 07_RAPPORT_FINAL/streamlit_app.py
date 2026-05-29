@@ -5,6 +5,7 @@ import base64
 from textwrap import dedent
 import json
 import re
+from urllib.parse import quote, unquote
 
 import altair as alt
 import pandas as pd
@@ -917,6 +918,63 @@ def get_current_username():
     return st.session_state.get("username", "visiteur")
 
 
+def get_auth_query_string(page_name="dashboard"):
+    """
+    Construit une URL interne qui garde le rôle actif.
+    Cela évite que les liens HTML rechargent Streamlit en oubliant la session.
+    """
+    role = get_current_role()
+    username = get_current_username()
+
+    return (
+        f"?auth=1"
+        f"&role={quote(role)}"
+        f"&username={quote(username)}"
+        f"&page={quote(page_name)}"
+    )
+
+
+def persist_session_in_url(page_name="dashboard"):
+    """
+    Sauvegarde le rôle actif dans l'URL.
+    Ce système est volontairement simple pour le projet : il permet
+    de naviguer entre les pages sans devoir se reconnecter à chaque clic.
+    """
+    if not st.session_state.get("authenticated", False):
+        return
+
+    st.query_params["auth"] = "1"
+    st.query_params["role"] = get_current_role()
+    st.query_params["username"] = get_current_username()
+    st.query_params["page"] = page_name
+
+
+def restore_session_from_url():
+    """
+    Restaure la session depuis l'URL après un rechargement de page.
+    Les liens de navigation HTML provoquent parfois un reload complet ;
+    cette fonction garde donc l'utilisateur connecté pendant la navigation.
+    """
+    if st.session_state.get("authenticated", False):
+        return
+
+    if st.query_params.get("auth") != "1":
+        return
+
+    role = normalize_role(unquote(st.query_params.get("role", "visiteur")))
+    username = unquote(st.query_params.get("username", role))
+
+    if role not in ROLE_LABELS:
+        role = "visiteur"
+        username = "visiteur"
+
+    st.session_state.authenticated = True
+    st.session_state.username = username or "visiteur"
+    st.session_state.role = role
+    st.session_state.role_label = ROLE_LABELS.get(role, "Utilisateur")
+    st.session_state.current_page = st.query_params.get("page", "dashboard")
+
+
 def can_view_private_ship_data():
     """Les propriétaires et administrateurs voient les données internes."""
     return get_current_role() in ["proprietaire", "administrateur"]
@@ -945,6 +1003,7 @@ def is_visitor():
 def set_page(page_name):
     """Change la page courante."""
     st.session_state.current_page = page_name
+    persist_session_in_url(page_name)
 
 
 def get_current_page():
@@ -984,6 +1043,7 @@ def enter_as_visitor():
     st.session_state.role_label = "Visiteur"
     st.session_state.current_page = "dashboard"
     reset_search_filters()
+    persist_session_in_url("dashboard")
     st.rerun()
 
 
@@ -1215,6 +1275,7 @@ def login_screen():
             st.session_state.role_label = user["label"]
             st.session_state.current_page = "dashboard"
             reset_search_filters()
+            persist_session_in_url("dashboard")
             st.rerun()
 
         st.session_state.login_error = True
@@ -1745,6 +1806,9 @@ def prepare_display_dataframe(df):
             "Année",
             "Pavillon",
             "Longueur",
+            "Largeur",
+            "Tirant d'eau",
+            "Dernière escale",
         ]
     elif role == "proprietaire":
         wanted_columns = [
@@ -1757,6 +1821,8 @@ def prepare_display_dataframe(df):
             "GT",
             "DWT",
             "Longueur",
+            "Largeur",
+            "Tirant d'eau",
             "Classification",
             "Propriétaire actuel",
             "Dernière escale",
@@ -2533,17 +2599,23 @@ def render_topbar():
     username = get_current_username()
     logo = logo_markup("topbar-logo", dark=False)
 
+    dashboard_href = get_auth_query_string("dashboard")
+    ships_href = get_auth_query_string("ships")
+    owner_href = get_auth_query_string("owner_request")
+    profile_href = get_auth_query_string("profile")
+    settings_href = get_auth_query_string("settings")
+
     auth_label = "Se connecter" if is_visitor() else "Se déconnecter"
     auth_href = "?logout=1"
 
-    menu_html = f'''
+    menu_html = f"""
 <div class="topbar">
     <div class="topbar-left">
-        <a href="?page=dashboard" target="_self">{logo}</a>
+        <a href="{dashboard_href}" target="_self">{logo}</a>
         <div class="topbar-nav">
-            <a href="?page=dashboard" target="_self">Accueil</a>
-            <a href="?page=ships" target="_self">Bateaux</a>
-            <a href="?page=owner_request" target="_self">Devenir propriétaire</a>
+            <a href="{dashboard_href}" target="_self">Accueil</a>
+            <a href="{ships_href}" target="_self">Bateaux</a>
+            <a href="{owner_href}" target="_self">Devenir propriétaire</a>
         </div>
     </div>
     <details class="user-menu">
@@ -2553,16 +2625,18 @@ def render_topbar():
                 <strong>{escape(role_label)}</strong>
                 <span>Compte actuel : {escape(username)}</span>
             </div>
-            <a href="?page=profile" target="_self">Profil</a>
-            <a href="?page=settings" target="_self">Paramètres</a>
-            <a href="?page=ships" target="_self">Voir tous les bateaux</a>
-            <a href="?page=owner_request" target="_self">Devenir propriétaire</a>
+            <a href="{profile_href}" target="_self">Profil</a>
+            <a href="{settings_href}" target="_self">Paramètres</a>
+            <a href="{ships_href}" target="_self">Voir tous les bateaux</a>
+            <a href="{owner_href}" target="_self">Devenir propriétaire</a>
             <a href="{auth_href}" target="_self">{auth_label}</a>
         </div>
     </details>
 </div>
-'''
+"""
     render_html(menu_html)
+
+
 
 def render_hero(title, subtitle):
     """Affiche un hero moderne."""
@@ -2659,7 +2733,9 @@ def render_ship_cards(df, detailed=False, limit=24):
                     </div>
                     <div class="ship-detail-box">
                         <div class="ship-detail-line"><span>Année</span><span>{year}</span></div>
+                        <div class="ship-detail-line"><span>Dimensions</span><span>{length} × {width}</span></div>
                         <div class="ship-detail-line"><span>Tirant d'eau</span><span>{draft}</span></div>
+                        <div class="ship-detail-line"><span>Dernière escale</span><span>{last_port}</span></div>
                     </div>
                     {private_details}
                 </div>
@@ -3494,6 +3570,7 @@ def show_admin_data_management():
 # ------------------------------------------------------------
 
 handle_logout_from_url()
+restore_session_from_url()
 
 if not is_logged_in():
     login_screen()
@@ -3503,6 +3580,7 @@ render_topbar()
 st.markdown('<div class="main-content">', unsafe_allow_html=True)
 
 current_page = get_current_page()
+persist_session_in_url(current_page)
 
 if current_page == "profile":
     show_profile_page()
