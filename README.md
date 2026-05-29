@@ -1,34 +1,34 @@
 # ShipData: Structure et analyse des flottes maritimes
 
-Projet de base de données, Printemps 2026  
-Groupe 04  
+Projet de base de données - Printemps 2026
+Groupe 04
 Fatima Alame / Ramine Yunus / Gabriel Olivier Thorens / Anqi Liu / Matsvei Hamza / Kevin Nash Calegari
 
 ## 1. Description du projet
 
 ShipData est une base de données relationnelle qui permet de stocker et d'interroger des informations sur des navires internationaux.
 
-La base contient des données comme :
+La base contient des données telles que :
 
 - le numéro IMO du navire ;
 - le nom du navire ;
 - le type de navire ;
 - l'année de construction ;
 - le pavillon ;
-- les caractéristiques techniques comme le tonnage, la longueur, la largeur ou le tirant d'eau ;
+- les caractéristiques techniques (comme le tonnage, la longueur, la largeur ou le tirant d'eau) ;
 - la société de classification ;
 - le constructeur ;
 - le propriétaire ;
 - les ports et les escales.
 
-Le but du projet n'est pas seulement de stocker des données, mais aussi de pouvoir les interroger avec des requêtes SQL utiles pour analyser une flotte maritime. L'application permet par exemple de trouver les navires les plus anciens, de comparer les types de navires, de repérer les pavillons les plus fréquents, d'identifier les constructeurs les plus représentés ou encore de rechercher des navires selon plusieurs critères.
+Le but du projet n'est pas seulement de stocker des données, mais aussi de pouvoir les interroger grâce à des requêtes SQL utiles pour analyser une flotte maritime. L'application permet par exemple de trouver les navires les plus anciens, de comparer les types de navires, de repérer les pavillons les plus fréquents, d'identifier les constructeurs les plus représentés ou encore de rechercher des navires selon plusieurs critères.
 
 ## 2. Utilisateurs possibles
 
 L'application peut être utilisée par :
 
-- des étudiants ou chercheurs qui veulent analyser des données maritimes ;
-- des analystes en logistique et transport international ;
+- des étudiants ou des chercheurs qui veulent analyser des données maritimes ;
+- des analystes en logistique et en transport international ;
 - des autorités portuaires ;
 - des compagnies maritimes ;
 - des personnes intéressées par les navires, leur origine, leur âge ou leur activité.
@@ -42,25 +42,25 @@ Tables principales du projet :
 | Table | Rôle |
 | --- | --- |
 | `categorie_principale` | Stocke les grandes catégories de navires. |
-| `type_navire` | Stocke les types précis de navires : cargo, tanker, tug, passenger ship, etc. |
+| `type_navire` | Stocke les types précis de navires : cargo, navire-citerne (tanker), remorqueur (tug), navires à passager (passenger ship), etc. |
 | `pavillon` | Stocke les pays de pavillon des navires. |
 | `societe_classification` | Stocke les sociétés de classification. |
 | `port` | Stocke les ports liés aux escales. |
-| `constructeur` | Stocke les chantiers navals / builders. |
+| `constructeur` | Stocke les chantiers navals (builders). |
 | `proprietaire` | Stocke les entreprises propriétaires des navires. |
 | `navire` | Stocke les informations principales sur chaque navire. |
 | `propriete_navire` | Stocke l'historique des propriétaires des navires. |
-| `escale` | Stocke les arrivées et départs des navires dans les ports. |
+| `escale` | Stocke les arrivées et les départs des navires dans les ports. |
 
 ## 4. Technologies utilisées
 
-- PostgreSQL : système de gestion de base de données relationnelle.
-- SQL : création, remplissage et interrogation de la base.
-- Python : langage utilisé pour lancer l'interface.
-- Streamlit : interface simple pour consulter et interroger la base.
-- Pandas : affichage et manipulation des résultats SQL.
-- psycopg2-binary : connexion entre Python et PostgreSQL.
-- Altair : création de graphiques dans l'interface Streamlit.
+- **PostgreSQL** : système de gestion de base de données relationnelle (SGBD).
+- **SQL** : création, remplissage et interrogation de la base.
+- **Python** : langage utilisé pour lancer l'interface.
+- **Streamlit** : interface simple pour consulter et interroger la base.
+- **Pandas** : affichage et manipulation des résultats SQL.
+- **psycopg2-binary** : connexion entre Python et PostgreSQL.
+- **Altair** : création de graphiques dans l'interface Streamlit.
 
 ## 5. Installation
 
@@ -78,7 +78,16 @@ Sur macOS ou Linux, la commande peut aussi être :
 python3 --version
 ```
 
-### 5.2 Créer un environnement virtuel
+### 5.2 Cloner le projet
+
+Depuis le dossier racine du projet :
+
+```bash
+git clone https://github.com/fatimaalame/Shipdata/tree/main
+cd Shipdata
+```
+
+### 5.3 Créer un environnement virtuel
 
 Depuis le dossier racine du projet :
 
@@ -98,7 +107,7 @@ Sur Windows PowerShell :
 .\.venv\Scripts\Activate.ps1
 ```
 
-Si PowerShell bloque l'activation de l'environnement virtuel, exécuter temporairement :
+Si PowerShell bloque l'activation de l'environnement virtuel, exécuter temporairement la commande suivante :
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
@@ -110,9 +119,9 @@ Puis relancer :
 .\.venv\Scripts\Activate.ps1
 ```
 
-### 5.3 Installer les librairies Python
+### 5.4 Installer les librairies Python
 
-Avec le fichier `requirements.txt` :
+Installer les dépendances à l'aide du fichier `requirements.txt` :
 
 ```bash
 pip install -r requirements.txt
@@ -137,7 +146,7 @@ Créer une base de données PostgreSQL nommée par exemple :
 shipdata
 ```
 
-La création peut se faire dans DBeaver, pgAdmin ou directement avec PostgreSQL.
+La création peut se faire via DBeaver, pgAdmin ou directement avec des lignes de commandes PostgreSQL.
 
 Dans DBeaver, il est possible de créer la base avec la commande suivante :
 
@@ -164,8 +173,6 @@ Dans DBeaver :
 01_create_tables.sql
 02_constraints.sql
 03_insert_data.sql
-05_views.sql
-04_nos_requetes.sql
 ```
 
 Le rôle des fichiers est le suivant :
@@ -173,13 +180,12 @@ Le rôle des fichiers est le suivant :
 | Fichier | Rôle |
 | --- | --- |
 | `01_create_tables.sql` | Crée les tables de la base. |
-| `02_constraints.sql` | Ajoute les clés primaires, les clés étrangères, les contraintes `UNIQUE` et les contraintes `CHECK`. |
+| `02_constraints.sql` | Ajoute les clés primaires, les clés étrangères, ainsi que les contraintes `UNIQUE` et les contraintes `CHECK`. |
 | `03_insert_data.sql` | Indique l'ordre d'insertion des données depuis les fichiers CSV. |
-| `05_views.sql` | Crée les vues SQL si elles sont utilisées. |
 | `04_nos_requetes.sql` | Contient les requêtes SQL principales du projet. |
-| `06_drop_tables.sql` | Supprime les tables. Ce fichier doit seulement être utilisé pour recommencer la base à zéro. |
+| `05_drop_tables.sql` | Supprime les tables. Ce fichier doit uniquement être utilisé pour réinitialiser la base à zéro. |
 
-Important : ne pas exécuter `06_drop_tables.sql`, sauf si l'objectif est de supprimer les tables existantes.
+Important : ne pas exécuter `05_drop_tables.sql`, sauf si l'objectif est de supprimer l'ensemble des tables existantes.
 
 ## 7. Configuration de la connexion PostgreSQL
 
@@ -201,13 +207,13 @@ Créer un fichier `config.json` au même niveau que `README.md` avec le contenu 
 
 - `host` : généralement `localhost` si la base est sur votre ordinateur ;
 - `port` : généralement `5432` pour PostgreSQL ;
-- `user` : votre utilisateur PostgreSQL ;
+- `user` : votre nom d'utilisateur PostgreSQL ;
 - `password` : votre mot de passe PostgreSQL ;
-- `database` : le nom de votre base ShipData.
+- `database` : le nom de votre base de donnés (ShipData).
 
-Important : le fichier `config.json` contient un mot de passe local. Il ne doit pas être envoyé sur GitHub.
+Important : le fichier `config.json` contient un mot de passe local. Il ne doit pas être poussé sur GitHub.
 
-Il est recommandé d'ajouter cette ligne dans `.gitignore` :
+Il est fortement recommandé d'ajouter cette ligne dans `.gitignore` :
 
 ```gitignore
 config.json
@@ -215,6 +221,7 @@ config.json
 
 ## 8. Lancer l'interface
 
+**Remarque importante** : la base de données « shipdata » et le fichier « config.json » doivent être configurés avant d’exécuter le programme !
 Depuis la racine du projet, lancer la commande suivante :
 
 ```bash
@@ -351,5 +358,5 @@ ShipData/
 - Les requêtes importantes doivent aussi être présentes dans le rapport final.
 - Si une table ou une colonne n'apparaît pas dans l'interface, il faut vérifier que les scripts SQL ont bien été exécutés dans la bonne base.
 - Si la connexion échoue, il faut vérifier le fichier `config.json`, surtout le nom de la base, l'utilisateur et le mot de passe.
-- Le fichier `config.json` ne doit pas être envoyé sur GitHub.
+- Le fichier `config.json` ne doit ****jamais**** être envoyé sur GitHub.
 - Les identifiants de connexion dans Streamlit sont des comptes de démonstration et ne constituent pas une authentification sécurisée pour une application réelle.
