@@ -217,6 +217,19 @@ def get_logo_data_url():
     )
 
 
+def get_login_logo_data_url():
+    """Cherche le logo blanc uniquement pour la page de connexion."""
+    return get_asset_data_url(
+        [
+            "whitelogos.png",
+            "whiteLogos.png",
+            "white_logo.png",
+            "white-logo.png",
+        ],
+        fallback_mime="image/png",
+    )
+
+
 def logo_markup(css_class="app-logo", dark=False):
     """Retourne le HTML du logo ou un fallback texte."""
     logo_url = get_logo_data_url()
@@ -299,14 +312,14 @@ st.markdown(
     .topbar-left {
         display: flex;
         align-items: center;
-        gap: 1.2rem;
+        gap: 2.6rem;
         min-width: 0;
     }
 
     .topbar-logo {
         display: block;
-        width: clamp(190px, 20vw, 300px);
-        max-height: 76px;
+        width: clamp(240px, 24vw, 360px);
+        max-height: 92px;
         object-fit: contain;
     }
 
@@ -330,10 +343,10 @@ st.markdown(
     .topbar-nav {
         display: flex;
         align-items: center;
-        gap: 1rem;
+        gap: 2.2rem;
         color: #e5f3fb;
-        font-weight: 650;
-        font-size: 0.95rem;
+        font-weight: 750;
+        font-size: 1.15rem;
     }
 
     .topbar-nav a {
@@ -1050,7 +1063,12 @@ def enter_as_visitor():
 def login_screen():
     """Affiche l'écran de connexion avec une image de fond et une carte à droite."""
     background_url = get_login_background_data_url()
-    login_logo = logo_markup("login-logo", dark=True)
+    login_logo_url = get_login_logo_data_url() or get_logo_data_url()
+
+    if login_logo_url:
+        login_logo = f'<img class="login-logo" src="{login_logo_url}" alt="ShipData logo">'
+    else:
+        login_logo = '<div class="logo-fallback-dark">SHIPDATA</div>'
 
     if background_url:
         background_css = f"""
